@@ -1,0 +1,268 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-linseed: var(--font-custom);
+  --color-paper: #fbfbfb;
+  --color-obsidian: #1d1d1f;
+  --color-scarab-gold: #d4af37;
+  --color-aged-bone: #f0ede8;
+  --ease-ultra: cubic-bezier(0.23, 1, 0.32, 1);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 2.2);
+
+  /* ألوان الهوية البصرية الجديدة لبراند JADD للاستخدام المباشر */
+  --color-jadd-navy: #11102A;
+  --color-jadd-gold: #C5B37D;
+  --color-jadd-ivory: #F7F6EE;
+}
+
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body,
+  html {
+    @apply bg-background text-foreground;
+    scrollbar-width: thin;
+    scrollbar-color: #C5B37D transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #C5B37D;
+    border-radius: 20px;
+    transition: background 0.3s ease;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: rgba(197, 179, 125, 0.4);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #C5B37D;
+  }
+}
+
+@utility glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(197, 179, 125, 0.15);
+}
+
+.dark .glass-card {
+  background: rgba(17, 16, 42, 0.3);
+  border: 1px solid rgba(197, 179, 125, 0.1);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.975 0.006 85); /* العاجي الدافئ المأخوذ من خلفية اللوجو الفاتحة */
+  --foreground: oklch(0.14 0.022 265);  /* الكحلي العميق الفخم للنصوص الأساسية */
+  --card: oklch(0.975 0.006 85);
+  --card-foreground: oklch(0.14 0.022 265);
+  --popover: oklch(0.985 0.003 85);
+  --popover-foreground: oklch(0.14 0.022 265);
+  --primary: oklch(0.14 0.022 265);      /* اللون القيادي في الفاتح هو الكحلي */
+  --primary-foreground: oklch(0.975 0.006 85);
+  --secondary: oklch(0.93 0.01 85);
+  --secondary-foreground: oklch(0.14 0.022 265);
+  --muted: oklch(0.94 0.008 85);
+  --muted-foreground: oklch(0.45 0.015 265);
+  --accent: oklch(0.78 0.042 88);       /* درجة الذهب الفخم للمسات والتحديد النشط */
+  --accent-foreground: oklch(0.14 0.022 265);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.88 0.015 85);
+  --input: oklch(0.88 0.015 85);
+  --ring: oklch(0.78 0.042 88);
+  --chart-1: oklch(0.78 0.042 88);
+  --chart-2: oklch(0.14 0.022 265);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.975 0.006 85);
+  --sidebar-foreground: oklch(0.14 0.022 265);
+  --sidebar-primary: oklch(0.14 0.022 265);
+  --sidebar-primary-foreground: oklch(0.975 0.006 85);
+  --sidebar-accent: oklch(0.93 0.01 85);
+  --sidebar-accent-foreground: oklch(0.14 0.022 265);
+  --sidebar-border: oklch(0.88 0.015 85);
+  --sidebar-ring: oklch(0.78 0.042 88);
+}
+
+.dark {
+  --background: oklch(0.14 0.022 265); /* الخلفية الداكنة هي نفس كحلي اللوجو العتيق */
+  --foreground: oklch(0.975 0.006 85); /* النصوص تصبح بلون العاج الفاتح */
+  --card: oklch(0.17 0.02 265);        /* الكروت أفتح قليلاً من الخلفية لتأثير العمق */
+  --card-foreground: oklch(0.975 0.006 85);
+  --popover: oklch(0.17 0.02 265);
+  --popover-foreground: oklch(0.975 0.006 85);
+  --primary: oklch(0.78 0.042 88);      /* في الدارك مود يصبح الذهب هو اللون الأساسي للأزرار */
+  --primary-foreground: oklch(0.14 0.022 265);
+  --secondary: oklch(0.22 0.018 265);
+  --secondary-foreground: oklch(0.975 0.006 85);
+  --muted: oklch(0.22 0.018 265);
+  --muted-foreground: oklch(0.65 0.02 85);
+  --accent: oklch(0.22 0.018 265);
+  --accent-foreground: oklch(0.975 0.006 85);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.78 0.042 88);
+  --chart-1: oklch(0.78 0.042 88);
+  --chart-2: oklch(0.65 0.02 85);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.17 0.02 265);
+  --sidebar-foreground: oklch(0.975 0.006 85);
+  --sidebar-primary: oklch(0.78 0.042 88);
+  --sidebar-primary-foreground: oklch(0.14 0.022 265);
+  --sidebar-accent: oklch(0.22 0.018 265);
+  --sidebar-accent-foreground: oklch(0.975 0.006 85);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.78 0.042 88);
+}
+
+.brutalist-border {
+  border: 2px solid #ffffff;
+}
+
+.brutalist-grid {
+  display: grid;
+  gap: 0;
+  border: 1px solid #ffffff;
+}
+.brutalist-grid > * {
+  border: 1px solid #ffffff;
+}
+
+.admin-mode,
+.admin-mode * {
+  border-radius: 0.125rem !important;
+}
+
+@layer components {
+  .brutalist-border {
+    @apply border border-white/10;
+  }
+  
+  .brutalist-grid {
+    @apply border border-white/10;
+  }
+
+  .interactive-node {
+    @apply transition-all duration-300 hover:bg-white/[0.03] cursor-pointer;
+  }
+
+  .admin-panel {
+    @apply bg-black border border-white/10;
+  }
+
+  .admin-header-title {
+    @apply text-3xl font-bold tracking-tight text-white;
+  }
+
+  .admin-mono-meta {
+    @apply text-[9px] font-mono uppercase tracking-[0.4em] text-white/30;
+  }
+}
+
+@layer utilities {
+  @keyframes scanline {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(1000%);
+    }
+  }
+  .animate-scanline {
+    animation: scanline 8s linear infinite;
+  }
+
+  .no-spinner::-webkit-inner-spin-button,
+  .no-spinner::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spinner {
+    -moz-appearance: textfield;
+  }
+}
+
+body:has(#decommissioned-node) nav,
+body:has(#decommissioned-node) header,
+body:has(#decommissioned-node) footer,
+body:has(#system-breach) nav,
+body:has(#system-breach) header,
+body:has(#system-breach) footer {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}

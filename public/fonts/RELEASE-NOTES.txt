@@ -1,0 +1,16 @@
+== Release notes for LINE Seed Sans ==
+
+Compiler of release notes: Dalton Maag
+Designer: LINE VX Design & Dalton Maag Ltd & Sandoll Inc
+Designer URL: www.lycorp.co.jp
+Release date: 2023-09-07
+Version: 1.003
+
+Change log:
+- v1.003: Add Trademark, Update Copyright, Designer and Designer URL.
+- v1.002: Update License Description and URL
+- v1.001: Rename all files to "LINE Seed Sans"
+- v1.000: This is the first release.
+
+Weights: Thin, Regular, Bold, ExtraBold, Heavy
+Format: WOFF2 (Optimized for Web)
