@@ -9,7 +9,7 @@ export default function ReportsRegistry() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch("https://jadd-production-275a.up.railway.app/admin/report");
+      const res = await fetch("https://api.joinjadd.com/admin/report");
       const data = await res.json();
       setReports(data);
       setLoading(false);
@@ -30,7 +30,7 @@ export default function ReportsRegistry() {
 
   const handleDelete = async (id: string) => { {
       try {
-        await fetch(`https://jadd-production-275a.up.railway.app/admin/report/${id}`, { method: "DELETE" });
+        await fetch(`https://api.joinjadd.com/admin/report/${id}`, { method: "DELETE" });
         setReports(reports.filter(r => r._id !== id));
       } catch (err) {
         console.error(err);

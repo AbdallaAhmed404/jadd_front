@@ -57,7 +57,7 @@ export default function FavoritesPage() {
     }
 
     try {
-      const res = await fetch("https://jadd-production-275a.up.railway.app/user/favorites", {
+      const res = await fetch("https://api.joinjadd.com/user/favorites", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -79,7 +79,7 @@ export default function FavoritesPage() {
   const removeFromFavorites = async (productId: string) => {
     const token = localStorage.getItem("jadd-token");
     try {
-      const res = await fetch("https://jadd-production-275a.up.railway.app/user/favorites/toggle", {
+      const res = await fetch("https://api.joinjadd.com/user/favorites/toggle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

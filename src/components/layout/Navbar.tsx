@@ -262,7 +262,7 @@ export default function Navbar() {
   }, [isProfileOpen]);
 
   useEffect(() => {
-    fetch("https://jadd-production-275a.up.railway.app/user/allproduct")
+    fetch("https://api.joinjadd.com/user/allproduct")
       .then((res) => res.json())
       .then((data) => {
         const products = Array.isArray(data) ? data : (data.data || []);
@@ -316,7 +316,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      const response = await fetch("https://jadd-production-275a.up.railway.app/user/unread-count", { // (تأكد أن هذا هو الـ Route الصحيح الذي قمت بإنبطاقه في الـ Backend)
+      const response = await fetch("https://api.joinjadd.com/user/unread-count", { // (تأكد أن هذا هو الـ Route الصحيح الذي قمت بإنبطاقه في الـ Backend)
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
@@ -341,7 +341,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      const response = await fetch("https://jadd-production-275a.up.railway.app/user/notification", {
+      const response = await fetch("https://api.joinjadd.com/user/notification", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
@@ -358,7 +358,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      await fetch(`https://jadd-production-275a.up.railway.app/user/notification/${id}`, {
+      await fetch(`https://api.joinjadd.com/user/notification/${id}`, {
         method: "PATCH",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -374,7 +374,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      const response = await fetch("https://jadd-production-275a.up.railway.app/user/notification/read-all", {
+      const response = await fetch("https://api.joinjadd.com/user/notification/read-all", {
         method: "PATCH",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -401,7 +401,7 @@ export default function Navbar() {
 
     if (token) {
       setIsLoggedIn(true);
-      fetch("https://jadd-production-275a.up.railway.app/user/profile", {
+      fetch("https://api.joinjadd.com/user/profile", {
         headers: { "Authorization": `Bearer ${token}` }
       })
         .then((res) => res.json())
@@ -427,7 +427,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch("https://jadd-production-275a.up.railway.app/user/categories")
+    fetch("https://api.joinjadd.com/user/categories")
       .then((res) => res.json())
       .then((data) => {
         const allCats = [
@@ -569,7 +569,7 @@ export default function Navbar() {
                   checkAuthh();
 
                   try {
-                    const response = await fetch(`https://jadd-production-275a.up.railway.app/user/profile-status`, {
+                    const response = await fetch(`https://api.joinjadd.com/user/profile-status`, {
                       headers: { "Authorization": `Bearer ${token}` }
                     });
                     const data = await response.json();

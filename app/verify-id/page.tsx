@@ -60,7 +60,7 @@ export default function IDVerificationPage() {
 
     try {
       // 1. طلب الـ Signed URL من السيرفر
-      const res = await fetch("https://jadd-production-275a.up.railway.app/user/get-upload-url", {
+      const res = await fetch("https://api.joinjadd.com/user/get-upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -76,7 +76,7 @@ export default function IDVerificationPage() {
 
       // 3. إرسال الرابط للسيرفر لحفظه في قاعدة البيانات
       const token = localStorage.getItem("jadd-token");
-      const submitRes = await fetch("https://jadd-production-275a.up.railway.app/user/submit", {
+      const submitRes = await fetch("https://api.joinjadd.com/user/submit", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",

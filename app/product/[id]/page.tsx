@@ -116,7 +116,7 @@ export default function ProductDetailsPage() {
             return;
         }
 
-        const res = await fetch("https://jadd-production-275a.up.railway.app/user/access", {
+        const res = await fetch("https://api.joinjadd.com/user/access", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -142,7 +142,7 @@ export default function ProductDetailsPage() {
             const token = localStorage.getItem("jadd-token");
 
             // جلب بيانات المنتج
-            const res = await fetch(`https://jadd-production-275a.up.railway.app/user/product/${id}`, {
+            const res = await fetch(`https://api.joinjadd.com/user/product/${id}`, {
                 headers: token ? { "Authorization": `Bearer ${token}` } : {}
             });
             const productData = await res.json();
@@ -151,7 +151,7 @@ export default function ProductDetailsPage() {
 
             // جلب قائمة المفضلة للتأكد من حالة الزر عند الريفرش
             if (token) {
-                const favRes = await fetch("https://jadd-production-275a.up.railway.app/user/favorites", {
+                const favRes = await fetch("https://api.joinjadd.com/user/favorites", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 if (favRes.ok) {
@@ -170,7 +170,7 @@ export default function ProductDetailsPage() {
         const token = localStorage.getItem("jadd-token");
         if (!token) return alert("Please login");
 
-        await fetch("https://jadd-production-275a.up.railway.app/user/favorites/toggle", {
+        await fetch("https://api.joinjadd.com/user/favorites/toggle", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ productId: id })
@@ -395,7 +395,7 @@ export default function ProductDetailsPage() {
                                         <button
                                             onClick={async () => {
                                                 const token = localStorage.getItem("jadd-token");
-                                                const res = await fetch("https://jadd-production-275a.up.railway.app/user/create", {
+                                                const res = await fetch("https://api.joinjadd.com/user/create", {
                                                     method: "POST",
                                                     headers: {
                                                         "Content-Type": "application/json",
@@ -472,7 +472,7 @@ export default function ProductDetailsPage() {
                                 onClick={async () => {
                                     if (!checkAuth()) return;
                                     const token = localStorage.getItem("jadd-token");
-                                    const res = await fetch("https://jadd-production-275a.up.railway.app/user/create", {
+                                    const res = await fetch("https://api.joinjadd.com/user/create", {
                                         method: "POST",
                                         headers: {
                                             "Content-Type": "application/json",
