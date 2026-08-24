@@ -92,10 +92,10 @@ export default function SellerProfile() {
       const token = localStorage.getItem("jadd-token");
 
       const [profileRes, reviewsRes, checkRes] = await Promise.all([
-        fetch(`https://api.joinjadd.com/user/sellerProfile/${userId}`),
-        fetch(`https://api.joinjadd.com/user/review/${userId}`),
+        fetch(`https://jadd-production-275a.up.railway.app/user/sellerProfile/${userId}`),
+        fetch(`https://jadd-production-275a.up.railway.app/user/review/${userId}`),
         // استدعاء الـ API الجديد للتأكد من وجود معاملة بيع بين المشتري والبائع
-        fetch(`https://api.joinjadd.com/user/checkproduct/${userId}`, {
+        fetch(`https://jadd-production-275a.up.railway.app/user/checkproduct/${userId}`, {
           headers: token ? { "Authorization": `Bearer ${token}` } : {}
         })
       ]);
@@ -125,7 +125,7 @@ export default function SellerProfile() {
   const handleAddReview = async () => {
     const token = localStorage.getItem("jadd-token");
     try {
-      const response = await fetch(`https://api.joinjadd.com/user/review/${userId}`, {
+      const response = await fetch(`https://jadd-production-275a.up.railway.app/user/review/${userId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +149,7 @@ export default function SellerProfile() {
   const handleReport = async () => {
     const token = localStorage.getItem("jadd-token");
     try {
-      const response = await fetch(`https://api.joinjadd.com/user/report/${userId}`, {
+      const response = await fetch(`https://jadd-production-275a.up.railway.app/user/report/${userId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

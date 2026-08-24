@@ -59,7 +59,7 @@ export default function MarketplaceSections() {
   const fetchFavorites = async () => {
     const token = localStorage.getItem("jadd-token");
     if (token) {
-      const res = await fetch("https://api.joinjadd.com/user/favorites", {
+      const res = await fetch("https://jadd-production-275a.up.railway.app/user/favorites", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -70,7 +70,7 @@ export default function MarketplaceSections() {
   };
 
   useEffect(() => {
-    fetch("https://api.joinjadd.com/user/allproduct")
+    fetch("https://jadd-production-275a.up.railway.app/user/allproduct")
       .then((res) => res.json())
       .then((products) => {
         products.sort((a: any, b: any) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
@@ -135,7 +135,7 @@ export default function MarketplaceSections() {
     }
 
     try {
-      const res = await fetch("https://api.joinjadd.com/user/favorites/toggle", {
+      const res = await fetch("https://jadd-production-275a.up.railway.app/user/favorites/toggle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

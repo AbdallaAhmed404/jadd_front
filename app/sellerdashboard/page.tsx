@@ -90,13 +90,13 @@ export default function SellerDashboard() {
     try {
       const token = localStorage.getItem("jadd-token");
 
-      const res = await fetch("https://api.joinjadd.com/user/seller-dashboard-data", {
+      const res = await fetch("https://jadd-production-275a.up.railway.app/user/seller-dashboard-data", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const result = await res.json();
       setData(result);
 
-      const offersRes = await fetch("https://api.joinjadd.com/user/my-offers", {
+      const offersRes = await fetch("https://jadd-production-275a.up.railway.app/user/my-offers", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const offersResult = await offersRes.json();
@@ -115,7 +115,7 @@ export default function SellerDashboard() {
 
   const handleStatusChange = async (productId: string, buyerId?: string) => {
     const token = localStorage.getItem("jadd-token");
-    await fetch(`https://api.joinjadd.com/user/updatestatus/${productId}`, {
+    await fetch(`https://jadd-production-275a.up.railway.app/user/updatestatus/${productId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export default function SellerDashboard() {
   const handleToggleHidden = async (productId: string) => {
     const token = localStorage.getItem("jadd-token");
     try {
-      await fetch(`https://api.joinjadd.com/user/toggle-hidden/${productId}`, {
+      await fetch(`https://jadd-production-275a.up.railway.app/user/toggle-hidden/${productId}`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -144,7 +144,7 @@ export default function SellerDashboard() {
 
   const handleDelete = async (productId: string) => {
     const token = localStorage.getItem("jadd-token");
-    await fetch(`https://api.joinjadd.com/user/deleteproduct/${productId}`, {
+    await fetch(`https://jadd-production-275a.up.railway.app/user/deleteproduct/${productId}`, {
       method: "DELETE",
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -163,7 +163,7 @@ export default function SellerDashboard() {
 
     try {
       // 1. إرسال طلب تحديث حالة العرض للسيرفر
-      await fetch(`https://api.joinjadd.com/user/update-status/${offerId}`, {
+      await fetch(`https://jadd-production-275a.up.railway.app/user/update-status/${offerId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -174,7 +174,7 @@ export default function SellerDashboard() {
 
       // 2. إذا وافق البائع (accepted)، نقوم بفتح الشات تلقائياً مع المشتري
       if (status === "accepted") {
-        const chatRes = await fetch("https://api.joinjadd.com/user/access", {
+        const chatRes = await fetch("https://jadd-production-275a.up.railway.app/user/access", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
