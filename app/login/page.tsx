@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
-const API_URL = "https://api.joinjadd.com";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 export default function LoginPage() {
   const router = useRouter();

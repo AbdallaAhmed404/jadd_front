@@ -262,7 +262,7 @@ export default function Navbar() {
   }, [isProfileOpen]);
 
   useEffect(() => {
-    fetch("https://api.joinjadd.com/user/allproduct")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/allproduct`)
       .then((res) => res.json())
       .then((data) => {
         const products = Array.isArray(data) ? data : (data.data || []);
@@ -316,7 +316,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      const response = await fetch("https://api.joinjadd.com/user/unread-count", { // (تأكد أن هذا هو الـ Route الصحيح الذي قمت بإنبطاقه في الـ Backend)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/unread-count`, { // (تأكد أن هذا هو الـ Route الصحيح الذي قمت بإنبطاقه في الـ Backend)
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
@@ -341,7 +341,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      const response = await fetch("https://api.joinjadd.com/user/notification", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/notification`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await response.json();
@@ -358,7 +358,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      await fetch(`https://api.joinjadd.com/user/notification/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/notification/${id}`, {
         method: "PATCH",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -374,7 +374,7 @@ export default function Navbar() {
     if (!token) return;
 
     try {
-      const response = await fetch("https://api.joinjadd.com/user/notification/read-all", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/notification/read-all`, {
         method: "PATCH",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -401,7 +401,7 @@ export default function Navbar() {
 
     if (token) {
       setIsLoggedIn(true);
-      fetch("https://api.joinjadd.com/user/profile", {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
         .then((res) => res.json())
@@ -427,7 +427,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch("https://api.joinjadd.com/user/categories")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/categories`)
       .then((res) => res.json())
       .then((data) => {
         const allCats = [
@@ -569,7 +569,7 @@ export default function Navbar() {
                   checkAuthh();
 
                   try {
-                    const response = await fetch(`https://api.joinjadd.com/user/profile-status`, {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile-status`, {
                       headers: { "Authorization": `Bearer ${token}` }
                     });
                     const data = await response.json();

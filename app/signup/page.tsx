@@ -9,7 +9,7 @@ import { User, Mail, Phone, Lock, ShieldCheck, ArrowRight } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 // قم بتحديث هذا الرابط بعنوان السيرفر الخاص بك
-const API_URL = "https://api.joinjadd.com";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 export default function SignUpPage() {
   const router = useRouter();

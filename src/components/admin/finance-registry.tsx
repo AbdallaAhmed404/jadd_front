@@ -11,7 +11,7 @@ export default function CategoryRegistry() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetch("https://api.joinjadd.com/admin/categories")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`)
       .then((res) => res.json())
       .then((data) => { setCategories(data.data || []); setLoading(false); });
   }, []);
@@ -20,7 +20,7 @@ export default function CategoryRegistry() {
     e.preventDefault();
     if (!newCategoryAr.trim() || !newCategoryEn.trim()) return;
     
-    const res = await fetch("https://api.joinjadd.com/admin/categories", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
@@ -40,7 +40,7 @@ export default function CategoryRegistry() {
   };
 
   const handleDelete = async (id: string) => {
-    await fetch(`https://api.joinjadd.com/admin/categories/${id}`, { method: "DELETE" });
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories/${id}`, { method: "DELETE" });
     setCategories(categories.filter(c => c._id !== id));
   };
 

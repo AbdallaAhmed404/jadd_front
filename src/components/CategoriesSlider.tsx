@@ -58,7 +58,7 @@ export default function CategoriesSlider({ isOpen, onClose }: CategoriesSliderPr
     const currentText = t[lang];
 
     useEffect(() => {
-        fetch("https://api.joinjadd.com/user/categories")
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/categories`)
             .then((res) => res.json())
             .then((data) => {
                 const cats = data.data || (Array.isArray(data) ? data : []);

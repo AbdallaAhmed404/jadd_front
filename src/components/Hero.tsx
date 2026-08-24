@@ -153,7 +153,7 @@ export default function HeroMinimalSlider() {
                   checkAuth()
 
                   try {
-                    const response = await fetch(`https://api.joinjadd.com/user/profile-status`, {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile-status`, {
                       headers: { "Authorization": `Bearer ${token}` }
                     });
                     const data = await response.json(); // سيصلنا { status: 'unverified' | 'pending' | 'verified' }

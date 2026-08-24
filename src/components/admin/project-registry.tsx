@@ -9,7 +9,7 @@ export default function VendorRequestsRegistry() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetch("https://api.joinjadd.com/admin/Identitie")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/Identitie`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -25,12 +25,12 @@ export default function VendorRequestsRegistry() {
 
   const handleAction = async (item: any, action: string) => {
     if (action === "delete") {
-      await fetch(`https://api.joinjadd.com/admin/Identitie/${item._id}`, { method: "DELETE" });
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/Identitie/${item._id}`, { method: "DELETE" });
       setRequests(requests.filter((r) => r._id !== item._id));
     } else {
       const newStatus = action === 'activate' ? 'verified' : 'unverified';
       try {
-        const response = await fetch(`https://api.joinjadd.com/admin/status/${item.userId._id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/status/${item.userId._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus }),

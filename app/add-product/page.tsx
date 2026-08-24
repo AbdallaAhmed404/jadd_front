@@ -90,7 +90,7 @@ export default function AddProductPage() {
   const currentText = t[lang];
 
   useEffect(() => {
-    fetch("https://api.joinjadd.com/user/categories")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/categories`)
       .then((res) => res.json())
       .then((data) => {
         const cats = data.data || (Array.isArray(data) ? data : []);
@@ -167,7 +167,7 @@ export default function AddProductPage() {
     try {
       const imageUrls = await Promise.all(
         imageFiles.map(async (file) => {
-          const res = await fetch("https://api.joinjadd.com/user/get-upload-url", {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/get-upload-url`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ folder: "products", filename: file.name, contentType: file.type }),
@@ -180,7 +180,7 @@ export default function AddProductPage() {
 
       let videoUrl = "";
       if (videoFile) {
-        const res = await fetch("https://api.joinjadd.com/user/get-upload-url", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/get-upload-url`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ folder: "products", filename: videoFile.name, contentType: videoFile.type }),
@@ -190,7 +190,7 @@ export default function AddProductPage() {
         videoUrl = publicUrl;
       }
 
-      const response = await fetch("https://api.joinjadd.com/user/add-product", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/add-product`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

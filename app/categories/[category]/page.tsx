@@ -130,7 +130,7 @@ export default function CategoryPage() {
     const token = localStorage.getItem("jadd-token");
     if (!token) return;
     try {
-      const res = await fetch("https://api.joinjadd.com/user/favorites", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/favorites`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -145,7 +145,7 @@ export default function CategoryPage() {
     const token = localStorage.getItem("jadd-token");
     if (!token) { toast.error(currentText.loginError); return; }
     try {
-      const res = await fetch("https://api.joinjadd.com/user/favorites/toggle", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/favorites/toggle`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ productId })
@@ -181,7 +181,7 @@ export default function CategoryPage() {
       }
     }
 
-    fetch("https://api.joinjadd.com/admin/categories")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`)
       .then((res) => res.json())
       .then((data) => {
         const categoriesList = data.data || data;
@@ -208,8 +208,8 @@ export default function CategoryPage() {
     }
 
     const endpoint = decodedParam === "products"
-      ? "https://api.joinjadd.com/user/allproduct" // ضع هنا الـ endpoint الخاصة بكل المنتجات عندك لو مختلفة
-      : `https://api.joinjadd.com/user/category/${decodedParam}`;
+      ? `${process.env.NEXT_PUBLIC_API_URL}/user/allproduct` // ضع هنا الـ endpoint الخاصة بكل المنتجات عندك لو مختلفة
+      : `${process.env.NEXT_PUBLIC_API_URL}/user/category/${decodedParam}`;
 
     fetch(endpoint, { headers })
       .then((res) => res.json())

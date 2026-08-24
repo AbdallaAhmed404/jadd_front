@@ -10,7 +10,7 @@ export default function ProductRegistry() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("https://api.joinjadd.com/admin/product");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/product`);
       const result = await res.json();
       if (result.success) setProducts(result.data);
     } catch (error) {
@@ -23,13 +23,13 @@ export default function ProductRegistry() {
   useEffect(() => { fetchProducts(); }, []);
 
   const handleDelete = async (id: string) => {
-    await fetch(`https://api.joinjadd.com/admin/product/${id}`, { method: "DELETE" });
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/product/${id}`, { method: "DELETE" });
     setProducts(products.filter(p => p._id !== id));
   };
 
   const handleToggleFeatured = async (id: string) => {
     try {
-      const res = await fetch(`https://api.joinjadd.com/admin/toggle-featured/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/toggle-featured/${id}`, {
         method: "PATCH"
       });
       if (res.ok) {

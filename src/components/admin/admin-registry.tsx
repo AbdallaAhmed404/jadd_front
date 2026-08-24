@@ -12,7 +12,7 @@ export default function AdminRegistry() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch("https://api.joinjadd.com/admin/user"); // تأكد من مسار الراوت لديك
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user`); // تأكد من مسار الراوت لديك
       const data = await res.json();
       setUsers(data.data || data); // حسب هيكل الـ response في الكنترولر الخاص بك
     } catch (error) {
@@ -29,7 +29,7 @@ export default function AdminRegistry() {
   // مسح مستخدم
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`https://api.joinjadd.com/admin/user/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user/${id}`, {
         method: "DELETE",
       });
 

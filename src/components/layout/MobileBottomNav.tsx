@@ -22,7 +22,7 @@ export default function MobileBottomNav() {
         if (!token) return;
 
         try {
-            const response = await fetch("https://api.joinjadd.com/user/unread-count", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/unread-count`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await response.json();
@@ -39,7 +39,7 @@ export default function MobileBottomNav() {
         if (token) {
             setIsLoggedIn(true);
             checkUnreadChats();
-            fetch("https://api.joinjadd.com/user/profile", {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`, {
                 headers: { "Authorization": `Bearer ${token}` }
             })
                 .then((res) => res.json())
@@ -164,7 +164,7 @@ export default function MobileBottomNav() {
                     if (!checkAuth()) return;
 
                     try {
-                        const response = await fetch(`https://api.joinjadd.com/user/profile-status`, {
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile-status`, {
                             headers: { "Authorization": `Bearer ${token}` }
                         });
                         const data = await response.json();
