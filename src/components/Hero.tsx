@@ -153,7 +153,7 @@ export default function HeroMinimalSlider() {
                   checkAuth()
 
                   try {
-                    const response = await fetch(`https://jadd-production-275a.up.railway.app/user/profile-status`, {
+                    const response = await fetch(`https://api.joinjadd.com/user/profile-status`, {
                       headers: { "Authorization": `Bearer ${token}` }
                     });
                     const data = await response.json(); // سيصلنا { status: 'unverified' | 'pending' | 'verified' }

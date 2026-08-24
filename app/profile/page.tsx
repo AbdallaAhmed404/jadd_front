@@ -71,7 +71,7 @@ export default function MyAccountSettings() {
   // 1. جلب البيانات
   useEffect(() => {
     const token = localStorage.getItem("jadd-token");
-    fetch("https://jadd-production-275a.up.railway.app/user/profile", {
+    fetch("https://api.joinjadd.com/user/profile", {
       headers: { "Authorization": `Bearer ${token}` }
     })
     .then(res => res.json())
@@ -86,7 +86,7 @@ export default function MyAccountSettings() {
     const token = localStorage.getItem("jadd-token");
 
     // 1. طلب الـ Signed URL من الباك إند
-    const res = await fetch("https://jadd-production-275a.up.railway.app/user/get-upload-url", {
+    const res = await fetch("https://api.joinjadd.com/user/get-upload-url", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -107,7 +107,7 @@ export default function MyAccountSettings() {
   const handleSave = async () => {
     try {
     const token = localStorage.getItem("jadd-token");
-    const response = await fetch("https://jadd-production-275a.up.railway.app/user/profile", {
+    const response = await fetch("https://api.joinjadd.com/user/profile", {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json",

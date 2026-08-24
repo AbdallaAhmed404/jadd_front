@@ -73,14 +73,14 @@
 
 //   const socket = useMemo(() => {
 //     if (!myUserId) return null;
-//     return io("https://jadd-production-275a.up.railway.app", {
+//     return io("https://api.joinjadd.com", {
 //       auth: { userId: myUserId }
 //     });
 //   }, [myUserId]);
 
 //   useEffect(() => {
 //     if (isOpen && !activeChat && token) {
-//       fetch("https://jadd-production-275a.up.railway.app/user/conversations", {
+//       fetch("https://api.joinjadd.com/user/conversations", {
 //         headers: { "Authorization": `Bearer ${token}` }
 //       })
 //         .then(res => res.json())
@@ -140,7 +140,7 @@
 //       socket?.emit("join_chat", activeChat);
 //       socket?.emit("mark_as_read", { conversationId: activeChat });
 
-//       fetch(`https://jadd-production-275a.up.railway.app/user/${activeChat}/messages`, {
+//       fetch(`https://api.joinjadd.com/user/${activeChat}/messages`, {
 //         headers: { "Authorization": `Bearer ${token}` }
 //       })
 //         .then(res => res.json())
@@ -150,7 +150,7 @@
 
 //   const handleSend = async () => {
 //     if (!text.trim() || !activeChat) return;
-//     const res = await fetch("https://jadd-production-275a.up.railway.app/user/message", {
+//     const res = await fetch("https://api.joinjadd.com/user/message", {
 //       method: "POST",
 //       headers: {
 //         "Content-Type": "application/json",
@@ -168,7 +168,7 @@
 
 //     setIsUploading(true);
 //     try {
-//       const res = await fetch("https://jadd-production-275a.up.railway.app/user/get-upload-url", {
+//       const res = await fetch("https://api.joinjadd.com/user/get-upload-url", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -194,7 +194,7 @@
 
 //       if (!uploadRes.ok) throw new Error("Failed to upload file to R2");
 
-//       const msgRes = await fetch("https://jadd-production-275a.up.railway.app/user/message", {
+//       const msgRes = await fetch("https://api.joinjadd.com/user/message", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -232,7 +232,7 @@
 //         const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
 
 //         try {
-//           await fetch("https://jadd-production-275a.up.railway.app/user/message", {
+//           await fetch("https://api.joinjadd.com/user/message", {
 //             method: "POST",
 //             headers: {
 //               "Content-Type": "application/json",
@@ -570,12 +570,12 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
 
   const socket = useMemo(() => {
     if (!myUserId) return null;
-    return io("https://jadd-production-275a.up.railway.app", { auth: { userId: myUserId } });
+    return io("https://api.joinjadd.com", { auth: { userId: myUserId } });
   }, [myUserId]);
 
   useEffect(() => {
     if (isOpen && !activeChat && token) {
-      fetch("https://jadd-production-275a.up.railway.app/user/conversations", {
+      fetch("https://api.joinjadd.com/user/conversations", {
         headers: { "Authorization": `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -635,7 +635,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
       socket?.emit("join_chat", activeChat);
       socket?.emit("mark_as_read", { conversationId: activeChat });
 
-      fetch(`https://jadd-production-275a.up.railway.app/user/${activeChat}/messages`, {
+      fetch(`https://api.joinjadd.com/user/${activeChat}/messages`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -645,7 +645,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
 
   const handleSend = async () => {
     if (!text.trim() || !activeChat) return;
-    const res = await fetch("https://jadd-production-275a.up.railway.app/user/message", {
+    const res = await fetch("https://api.joinjadd.com/user/message", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -662,7 +662,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
 
     setIsUploading(true);
     try {
-      const res = await fetch("https://jadd-production-275a.up.railway.app/user/get-upload-url", {
+      const res = await fetch("https://api.joinjadd.com/user/get-upload-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -686,7 +686,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
 
       if (!uploadRes.ok) throw new Error("Failed to upload file to R2");
 
-      await fetch("https://jadd-production-275a.up.railway.app/user/message", {
+      await fetch("https://api.joinjadd.com/user/message", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -711,7 +711,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
     const mapUrl = `https://www.google.com/maps?q=${selectedCoords[0]},${selectedCoords[1]}`;
 
     try {
-      await fetch("https://jadd-production-275a.up.railway.app/user/message", {
+      await fetch("https://api.joinjadd.com/user/message", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
