@@ -56,7 +56,7 @@ const lineSeed = localFont({
 
 // تم التعديل بالكامل: نقل الـ Metadata لتعبر عن الهوية الفخمة لـ JADD وسوق سلطنة عُمان
 export const metadata: Metadata = {
-  metadataBase: new URL("https://jadd.om"), // تحديث النطاق لـ JADD
+  metadataBase: new URL("https://joinjadd.com"), // تحديث النطاق لـ JADD
   title: {
     default: "JADD",
     template: "JADD // %s",
@@ -72,14 +72,14 @@ export const metadata: Metadata = {
     "Ad-free Listing Platform",
     "Oman Premium Classifieds",
   ],
-  authors: [{ name: "JADD Team", url: "https://jadd.om" }],
+  authors: [{ name: "JADD Team", url: "https://joinjadd.com/" }],
   creator: "JADD",
   manifest: "/manifest.json",
   openGraph: {
     title: "JADD // Find Premium Deals Just Around The Corner",
     description:
       "Explore a curated selection of furniture, electronics, and apparel from trusted sellers right in your neighborhood across Oman.",
-    url: "https://jadd.om",
+    url: "https://joinjadd.com/",
     siteName: "JADD",
     locale: "en_OM", // تعديل الـ Locale لسلطنة عمان
     type: "website",
