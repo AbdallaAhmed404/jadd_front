@@ -281,7 +281,7 @@ export default function LoginPage() {
           <Image src="/auth-dark.jpg" alt="JADD Luxury Night" fill priority className="object-cover object-center" />
         </div>
         <div className="absolute inset-0 bg-[#1F1547]/5 dark:bg-black/20 mix-blend-multiply" />
-      </div>
+      </div> 
     </div>
   );
 }
