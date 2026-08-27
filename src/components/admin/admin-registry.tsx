@@ -12,9 +12,25 @@ export default function AdminRegistry() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user`); // تأكد من مسار الراوت لديك
+      
+      // 1. جلب التوكن من الـ localStorage
+      const token = localStorage.getItem("jadd-admin-token");
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/user`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // 2. إرسال التوكن مع الطلب هنا
+        }
+      });
+
       const data = await res.json();
-      setUsers(data.data || data); // حسب هيكل الـ response في الكنترولر الخاص بك
+      
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to fetch users");
+      }
+
+      setUsers(data.data || data); 
     } catch (error) {
       console.error("Failed to fetch users:", error);
     } finally {
@@ -39,6 +55,32 @@ export default function AdminRegistry() {
       }
     } catch (error) {
       console.error("Failed to delete user:", error);
+    }
+  };
+
+  // تبديل حالة التوثيق للبائع (تفعيل / إلغاء تفعيل)
+  const handleToggleVerification = async (id: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'verified' ? 'unverified' : 'verified';
+      const token = localStorage.getItem("jadd-admin-token");
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/status/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (res.ok) {
+        // تحديث الحالة مباشرة في الـ state بدون إعادة تحميل الصفحة
+        setUsers(users.map(user => 
+          user._id === id ? { ...user, verificationStatus: newStatus } : user
+        ));
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
     }
   };
 
@@ -137,13 +179,28 @@ export default function AdminRegistry() {
                       </span>
                     )}
                   </td>
-                  <td className="p-5 flex justify-center">
-                    <button
-                      onClick={() => handleDelete(user._id)}
-                      className="text-zinc-500 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                  <td className="p-5">
+                    <div className="flex items-center justify-center gap-3">
+                      {/* زر التبديل (تفعيل أو إلغاء التوثيق) */}
+                      <button
+                        onClick={() => handleToggleVerification(user._id, user.verificationStatus)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 flex items-center gap-1.5 ${
+                          user.verificationStatus === 'verified'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                            : 'bg-white/[0.03] text-zinc-400 border border-white/10 hover:border-zinc-500'
+                        }`}
+                      >
+                        <CheckCircle2 size={14} />
+                      </button>
+
+                      {/* زر الحذف */}
+                      <button
+                        onClick={() => handleDelete(user._id)}
+                        className="text-zinc-500 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<any[]>([]);
+  const [recommended, setRecommended] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -14,42 +15,44 @@ export default function FavoritesPage() {
   const [lang, setLang] = useState<"en" | "ar">("en");
 
   useEffect(() => {
-        const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
-        if (savedLang) {
-          setLang(savedLang);
-        }
-    
-        const handleLanguageChange = () => {
-          const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
-          if (currentLang && (currentLang === "en" || currentLang === "ar")) {
-            setLang(currentLang);
-          }
-        };
-    
-        window.addEventListener("languageChanged", handleLanguageChange);
-    
-        return () => {
-          window.removeEventListener("languageChanged", handleLanguageChange);
-        };
-      }, []);
+    const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+    if (savedLang) {
+      setLang(savedLang);
+    }
+  
+    const handleLanguageChange = () => {
+      const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+      if (currentLang && (currentLang === "en" || currentLang === "ar")) {
+        setLang(currentLang);
+      }
+    };
+  
+    window.addEventListener("languageChanged", handleLanguageChange);
+  
+    return () => {
+      window.removeEventListener("languageChanged", handleLanguageChange);
+    };
+  }, []);
 
   const t = {
     en: {
       pageTitle: "My Favorites",
       noFavorites: "No favorite items found.",
+      recommendedTitle: "Recommended for You",
       currency: "OMR"
     },
     ar: {
       pageTitle: "المفضلة",
       noFavorites: "لا توجد عناصر في المفضلة.",
+      recommendedTitle: "مقترحة لأجلك",
       currency: "رع"
     }
   };
 
   const currentText = t[lang];
 
-  // جلب المفضلات عند تحميل الصفحة
-  const fetchFavorites = async () => {
+  // جلب المفضلات والترشيحات بشكل منفصل وآمن
+  const fetchData = async () => {
     const token = localStorage.getItem("jadd-token");
     if (!token) {
       router.push("/login");
@@ -57,22 +60,33 @@ export default function FavoritesPage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/favorites`, {
+      // 1. جلب المفضلة (باستخدام الـ API القديم الأصلي بدون أي تعديل)
+      const favRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/favorites`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
-        setFavorites(data);
+      if (favRes.ok) {
+        const favData = await favRes.json();
+        setFavorites(favData);
       }
+
+      // 2. جلب المنتجات المقترحة من الـ API الجديد
+      const recRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/recommendations`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (recRes.ok) {
+        const recData = await recRes.json();
+        setRecommended(recData);
+      }
+
     } catch (error) {
-      console.error("Error fetching favorites:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFavorites();
+    fetchData();
   }, []);
 
   // دالة إزالة المنتج من المفضلة
@@ -89,7 +103,6 @@ export default function FavoritesPage() {
       });
 
       if (res.ok) {
-        // تحديث القائمة فوراً في الفرونت إند
         setFavorites(favorites.filter(item => item._id !== productId));
       }
     } catch (error) {
@@ -106,44 +119,75 @@ export default function FavoritesPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-zinc-950 p-6 md:p-12" dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-black text-[#1F1547] dark:text-white mb-8">{currentText.pageTitle}</h1>
+        <h1 className="text-2xl font-black text-[#1F1547] dark:text-white mb-8">{currentText.pageTitle}</h1>
 
-      {favorites.length === 0 ? (
-        <p className="text-zinc-500">{currentText.noFavorites}</p>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {favorites.map((product) => (
-            <Link href={`/product/${product._id}`} key={product._id} className="block group">
-              <div key={product._id} className="bg-white dark:bg-zinc-900 p-3 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-                <div className="h-40 bg-zinc-200 dark:bg-zinc-800 rounded-xl mb-3 relative overflow-hidden">
-                  <img
-                    src={product.images?.[0] || "/placeholder.jpg"}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    onClick={(e) => {
-                        e.preventDefault(); // يمنع الانتقال للمسار المحدد في Link
-                        e.stopPropagation(); // يمنع وصول ضغطة الزر إلى الـ Link المحيط
+        {favorites.length === 0 ? (
+          <p className="text-zinc-500 mb-12">{currentText.noFavorites}</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            {favorites.map((product) => (
+              <Link href={`/product/${product._id}`} key={product._id} className="block group">
+                <div className="bg-white dark:bg-zinc-900 p-3 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+                  <div className="h-40 bg-zinc-200 dark:bg-zinc-800 rounded-xl mb-3 relative overflow-hidden">
+                    <img
+                      src={product.images?.[0] || "/placeholder.jpg"}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         removeFromFavorites(product._id);
                       }}
-                    className={`absolute top-2 ${lang === "ar" ? "left-2" : "right-2"} p-2 bg-white dark:bg-zinc-800 rounded-full text-red-500 shadow-md hover:scale-105 transition-transform`}
-                  >
-                    <Heart size={16} fill="currentColor" />
-                  </button>
-                </div>
+                      className={`absolute top-2 ${lang === "ar" ? "left-2" : "right-2"} p-2 bg-white dark:bg-zinc-800 rounded-full text-red-500 shadow-md hover:scale-105 transition-transform`}
+                    >
+                      <Heart size={16} fill="currentColor" />
+                    </button>
+                  </div>
 
-                <h3 className="text-sm font-bold text-[#1F1547] dark:text-white truncate">
-                  {product.title}
-                </h3>
-                <p className="text-xs font-bold text-[#232152] dark:text-[#D6C88A] mt-1">
-                  {product.price} {currentText.currency}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+                  <h3 className="text-sm font-bold text-[#1F1547] dark:text-white truncate">
+                    {product.title}
+                  </h3>
+                  <p className="text-xs font-bold text-[#232152] dark:text-[#D6C88A] mt-1">
+                    {product.price} {currentText.currency}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* قسم المنتجات المقترحة */}
+        {recommended.length > 0 && (
+          <div>
+            <h2 className="text-xl font-bold text-[#1F1547] dark:text-white mb-6  border-zinc-200 dark:border-zinc-800 pt-8">
+              {currentText.recommendedTitle}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {recommended.map((product) => (
+                <Link href={`/product/${product._id}`} key={product._id} className="block group">
+                  <div className="bg-white dark:bg-zinc-900 p-3 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+                    <div className="h-40 bg-zinc-200 dark:bg-zinc-800 rounded-xl mb-3 relative overflow-hidden">
+                      <img
+                        src={product.images?.[0] || "/placeholder.jpg"}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <h3 className="text-sm font-bold text-[#1F1547] dark:text-white truncate">
+                      {product.title}
+                    </h3>
+                    <p className="text-xs font-bold text-[#232152] dark:text-[#D6C88A] mt-1">
+                      {product.price} {currentText.currency}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

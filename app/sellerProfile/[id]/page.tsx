@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { User, ShieldCheck, MapPin, Calendar, Star, Flag } from "lucide-react";
+import { User, ShieldCheck, MapPin, Calendar, Star, Flag, Package, ShoppingBag } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function SellerProfile() {
@@ -60,12 +60,14 @@ export default function SellerProfile() {
       sendReportBtn: "Send Report",
       reviewErrorToast: "Failed to add review",
       reportSuccessToast: "Report sent successfully",
-      reportErrorToast: "Failed to send report"
+      reportErrorToast: "Failed to send report",
+      listingsCountLabel: "Listings",
+      soldCountLabel: "Sold"
     },
     ar: {
       loadingText: "جاري التحميل...",
       errorText: "خطأ: ",
-      joinedPrefix: "انضم في ",
+      joinedPrefix: "عضو منذ ",
       noBio: "لا يوجد نبذة تعريفية.",
       verifiedSeller: "بائع موثق",
       reviewsTitle: "التقييمات",
@@ -81,7 +83,9 @@ export default function SellerProfile() {
       sendReportBtn: "إرسال البلاغ",
       reviewErrorToast: "فشل إضافة التقييم",
       reportSuccessToast: "تم إرسال البلاغ بنجاح",
-      reportErrorToast: "فشل إرسال البلاغ"
+      reportErrorToast: "فشل إرسال البلاغ",
+      listingsCountLabel: "إعلان",
+      soldCountLabel: "تم بيع"
     }
   };
 
@@ -94,7 +98,6 @@ export default function SellerProfile() {
       const [profileRes, reviewsRes, checkRes] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/sellerProfile/${userId}`),
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/review/${userId}`),
-        // استدعاء الـ API الجديد للتأكد من وجود معاملة بيع بين المشتري والبائع
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/checkproduct/${userId}`, {
           headers: token ? { "Authorization": `Bearer ${token}` } : {}
         })
@@ -102,13 +105,13 @@ export default function SellerProfile() {
 
       const profileData = await profileRes.json();
       const reviewsData = await reviewsRes.json();
-      
+
       setData(profileData);
-      setReviews(reviewsData);
+      setReviews(Array.isArray(reviewsData) ? reviewsData : []);
 
       if (checkRes.ok) {
         const checkData = await checkRes.json();
-        setCanReview(checkData.exists); // ستكون true أو false بناءً على الـ API
+        setCanReview(checkData.exists);
       }
 
       setLoading(false);
@@ -171,16 +174,18 @@ export default function SellerProfile() {
 
   if (loading) return <div className="p-20 text-center">{currentText.loadingText}</div>;
   if (error) return <div className="p-20 text-center text-red-500">{currentText.errorText}{error}</div>;
+  if (!data || !data.seller) return <div className="p-20 text-center">No seller data found.</div>;
 
-  const { seller, listings } = data;
+  const { seller, listings = [], stats = { totalListings: 0, soldListings: 0 } } = data;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black transition-colors p-6 md:p-12 text-zinc-900 dark:text-zinc-100" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <Toaster />
       <div className="max-w-4xl mx-auto space-y-12">
 
         <section className="bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-8 md:p-10 rounded-[2rem] flex flex-col md:flex-row gap-8 items-center shadow-sm">
           <div className="w-32 h-32 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center text-4xl text-zinc-400 overflow-hidden border-4 border-zinc-50 dark:border-black">
-            {seller.profileImage ? (
+            {seller?.profileImage ? (
               <img src={seller.profileImage} className="w-full h-full object-cover" alt="Profile" />
             ) : (
               <User size={48} />
@@ -189,13 +194,26 @@ export default function SellerProfile() {
 
           <div className={`space-y-4 text-center ${lang === "ar" ? "md:text-right" : "md:text-left"} flex-1`}>
             <div>
-              <h1 className="text-3xl font-bold">{seller.fullName}</h1>
-              <div className={`flex items-center justify-center ${lang === "ar" ? "md:justify-start" : "md:justify-start"} gap-4 mt-2 text-sm text-zinc-500`}>
-                <span className="flex items-center gap-1"><MapPin size={14} /> {seller.location?.address || seller.location || "N/A"}</span>
-                <span className="flex items-center gap-1"><Calendar size={14} /> {currentText.joinedPrefix}{new Date(seller.createdAt).getFullYear()}</span>
+              <h1 className="text-3xl font-bold">{seller?.fullName}</h1>
+              
+              {/* قسم التاريخ والإحصائيات الجديدة */}
+              <div className={`flex flex-wrap items-center justify-center ${lang === "ar" ? "md:justify-start" : "md:justify-start"} gap-4 mt-2 text-sm text-zinc-500`}>
+                <span className="flex items-center gap-1">
+                   {currentText.joinedPrefix}{seller?.createdAt ? new Date(seller.createdAt).getFullYear() : ""}
+                </span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                <span className="flex items-center gap-1">
+                   {stats.totalListings} {currentText.listingsCountLabel}
+                </span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                <span className="flex items-center gap-1">
+                   {stats.soldListings} {currentText.soldCountLabel}
+                </span>
               </div>
             </div>
-            <p className="text-zinc-600 dark:text-zinc-400 text-sm max-w-lg">{seller.bio || currentText.noBio}</p>
+
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm max-w-lg">{seller?.bio || currentText.noBio}</p>
+            
             <div className={`flex items-center justify-center ${lang === "ar" ? "md:justify-start" : "md:justify-start"} gap-2 text-[#232152] dark:text-[#D6C88A]`}>
               <ShieldCheck size={18} />
               <span className="text-xs font-bold uppercase tracking-wider">{currentText.verifiedSeller}</span>
@@ -206,8 +224,7 @@ export default function SellerProfile() {
         <section className="space-y-6">
           <div className={`flex justify-between items-center border-[#232152] dark:border-[#D6C88A] ${lang === "ar" ? "pr-4 border-r-2" : "pl-4 border-l-2"}`}>
             <h2 className="text-xl font-bold">{currentText.reviewsTitle}</h2>
-            
-            {/* يظهر الزر فقط إذا كان المشتري قد اشترى منتجاً من هذا البائع مسبقاً */}
+
             {canReview && (
               <button onClick={() => setShowReviewForm(!showReviewForm)} className="px-5 py-2 bg-[#232152] dark:bg-[#D6C88A] text-white dark:text-black text-xs font-bold rounded-full hover:opacity-90 transition">
                 {showReviewForm ? currentText.cancelBtn : currentText.addReviewBtn}
@@ -232,11 +249,11 @@ export default function SellerProfile() {
               <div key={rev._id} className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border dark:border-zinc-800">
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
-                    <img src={rev.reviewer.profileImage || "/default-avatar.png"} className="w-8 h-8 rounded-full object-cover" alt="Reviewer" />
-                    <span className="font-bold text-sm">{rev.reviewer.fullName}</span>
+                    <img src={rev.reviewer?.profileImage || "/default-avatar.png"} className="w-8 h-8 rounded-full object-cover" alt="Reviewer" />
+                    <span className="font-bold text-sm">{rev.reviewer?.fullName}</span>
                   </div>
                   <div className="flex text-[#D6C88A]">
-                    {[...Array(rev.rating)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
+                    {[...Array(rev.rating || 0)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                   </div>
                 </div>
                 <p className="text-xs text-zinc-500">{rev.comment}</p>
@@ -252,7 +269,7 @@ export default function SellerProfile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {listings.length > 0 ? listings.map((item: any) => (
               <Link href={`/product/${item._id}`} key={item._id} className="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-4 hover:shadow-lg transition-shadow block">
-                <img src={item.images[0]} className="w-full h-40 object-cover rounded-xl mb-4" alt={item.title} />
+                <img src={item.images?.[0] || "/placeholder.jpg"} className="w-full h-40 object-cover rounded-xl mb-4" alt={item.title} />
                 <h3 className="font-bold text-sm">{item.title}</h3>
                 <p className="text-[#232152] dark:text-[#D6C88A] font-bold mt-1">OMR {item.price}</p>
               </Link>
@@ -262,6 +279,7 @@ export default function SellerProfile() {
 
         <section className="bg-red-50 dark:bg-red-900/10 p-8 rounded-2xl border border-red-200 dark:border-red-900/30">
           <h3 className="flex items-center gap-2 font-bold text-red-600 mb-4">
+            <Flag size={18} />
             {currentText.reportTitle}
           </h3>
           <textarea

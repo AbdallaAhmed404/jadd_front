@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft, Send, Paperclip, Loader2, MapPin } from "lucide-react";
+import { X, ArrowLeft, Send, Paperclip, Loader2, MapPin, Trash2 } from "lucide-react";
 import { io } from "socket.io-client";
 import { jwtDecode } from "jwt-decode";
 import dynamic from "next/dynamic";
@@ -33,6 +33,18 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
   const [isSendingLocation, setIsSendingLocation] = useState(false);
 
   const [lang, setLang] = useState<"en" | "ar">("en");
+  const [uploadingFileName, setUploadingFileName] = useState<string | null>(null);
+
+  useEffect(() => {
+      if (isOpen) {
+        document.body.style.overflow = "hidden"; // قفل سكرول الخلفية
+      } else {
+        document.body.style.overflow = "unset";  // إعادة السكرول عند الغلق
+      }
+      return () => {
+        document.body.style.overflow = "unset";
+      };
+    }, [isOpen]);
 
   useEffect(() => {
     const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
@@ -138,9 +150,14 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
       }
     });
 
+    socket.on("message_deleted", ({ messageId }) => {
+      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+    });
+
     return () => {
       socket.off("receive_message");
       socket.off("messages_read");
+      socket.off("message_deleted");
     };
   }, [activeChat, socket, myUserId]);
 
@@ -156,6 +173,21 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
         .then(data => setMessages(data));
     }
   }, [activeChat, token, socket]);
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/deleteMessage/${messageId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete message");
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  };
 
   const handleSend = async () => {
     if (!text.trim() || !activeChat) return;
@@ -175,6 +207,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
     if (!file || !activeChat) return;
 
     setIsUploading(true);
+    setUploadingFileName(file.name); // حفظ اسم الملف الجاري رفعه لعرضه في التخطيط
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/get-upload-url`, {
         method: "POST",
@@ -215,6 +248,7 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
       console.error("Upload error:", error);
     } finally {
       setIsUploading(false);
+      setUploadingFileName(null); // مسح الاسم عند الانتهاء
       e.target.value = "";
     }
   };
@@ -346,42 +380,73 @@ export default function ChatDrawer({ isOpen, onClose, activeChatId }: ChatDrawer
                   })
                 )
               ) : (
-                messages.map((m, i) => {
-                  const isVideo = /\.(mp4|mov|webm)$/i.test(m.text);
-                  const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(m.text) || (m.text.includes("chat-files") && !isVideo);
-                  const isMapLocation = m.text.includes("google.com/maps");
-                  const isLink = m.text.startsWith("http");
+                <>
+                  {messages.map((m, i) => {
+                    const isVideo = /\.(mp4|mov|webm)$/i.test(m.text);
+                    const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(m.text) || (m.text.includes("chat-files") && !isVideo);
+                    const isMapLocation = m.text.includes("google.com/maps");
+                    const isLink = m.text.startsWith("http");
 
-                  return (
-                    <div key={i} className={`flex ${m.senderId === myUserId ? "justify-end" : "justify-start"}`}>
-                      <div className={`p-2 pb-4 rounded-[10px] text-sm max-w-[80%] relative ${m.senderId === myUserId ? "bg-[#232152] dark:bg-[#D6C88A] text-white dark:text-black" : "bg-zinc-100 dark:bg-zinc-800"}`}>
-                        {isLink && isVideo ? (
-                          <video src={m.text} controls className="max-w-full rounded-lg max-h-60 object-contain" />
-                        ) : isLink && isImage ? (
-                          <a href={m.text} target="_blank" rel="noopener noreferrer">
-                            <img src={m.text} alt="attachment" className="max-w-full rounded-lg max-h-60 object-cover" />
-                          </a>
-                        ) : isMapLocation ? (
-                          <a href={m.text} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline font-semibold py-1 px-2 bg-black/10 dark:bg-white/10 rounded-lg">
-                            <MapPin size={16} />
-                            <span>{currentText.currentLocation}</span>
-                          </a>
-                        ) : isLink ? (
-                          <a href={m.text} target="_blank" rel="noopener noreferrer" className="underline break-all">{m.text}</a>
-                        ) : (
-                          <span>{m.text}</span>
-                        )}
+                    return (
+                      <div key={i} className={`flex items-end gap-2 group relative ${m.senderId === myUserId ? "justify-end" : "justify-start"}`}>
 
+                        {/* زر الحذف ظاهر دائماً لرسائلك */}
                         {m.senderId === myUserId && (
-                          <span className={`text-[10px] absolute bottom-1 ${lang === "ar" ? "left-1" : "right-1"}`}>
-                            {m.isRead ? "✓✓" : "✓"}
-                          </span>
+                          <button
+                            onClick={() => handleDeleteMessage(m._id)}
+                            className=" text-zinc-400 hover:text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full shrink-0"
+                          
+                          >
+                            <Trash2 size={15} />
+                          </button>
                         )}
+
+                        <div className={`p-2 pb-6 px-3 rounded-[10px] text-sm max-w-[80%] relative ${m.senderId === myUserId ? "bg-[#232152] dark:bg-[#D6C88A] text-white dark:text-black" : "bg-zinc-100 dark:bg-zinc-800"}`}>
+
+                          {isLink && isVideo ? (
+                            <video src={m.text} controls className="max-w-full rounded-lg max-h-60 object-contain mt-1" />
+                          ) : isLink && isImage ? (
+                            <a href={m.text} target="_blank" rel="noopener noreferrer">
+                              <img src={m.text} alt="attachment" className="max-w-full rounded-lg max-h-60 object-cover mt-1" />
+                            </a>
+                          ) : isMapLocation ? (
+                            <a href={m.text} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline font-semibold py-1 px-2 bg-black/10 dark:bg-white/10 rounded-lg mt-1">
+                              <MapPin size={16} />
+                              <span>{currentText.currentLocation}</span>
+                            </a>
+                          ) : isLink ? (
+                            <a href={m.text} target="_blank" rel="noopener noreferrer" className="underline break-all">{m.text}</a>
+                          ) : (
+                            <span>{m.text}</span>
+                          )}
+
+                          {m.senderId === myUserId && (
+                            <span className={`text-[10px] absolute bottom-1 ${lang === "ar" ? "left-2" : "right-2"}`}>
+                              {m.isRead ? "✓✓" : "✓"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* عرض الرسالة التخطيطية أثناء رفع الملف */}
+                  {isUploading && (
+                    <div className="flex justify-end">
+                      <div className="p-3 rounded-[10px] text-sm max-w-[80%] bg-zinc-200 dark:bg-zinc-800 animate-pulse flex items-center gap-3">
+                        <Loader2 size={18} className="animate-spin text-zinc-500 shrink-0" />
+                        <div className="flex flex-col gap-1.5">
+                          <div className="h-3 w-32 bg-zinc-300 dark:bg-zinc-700 rounded"></div>
+                          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
+                            جاري رفع: {uploadingFileName || "ملف..."}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  );
-                })
+                  )}
+                </>
               )}
+
               {!activeChat && conversations.length === 0 ? null : <div ref={messagesEndRef} />}
             </div>
 

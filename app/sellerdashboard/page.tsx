@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, ArrowLeftRight, Heart, TrendingUp, Package, Trash2, RefreshCw, Check, X, Star } from "lucide-react";
+import { Eye, EyeOff, ArrowLeftRight, Heart, TrendingUp, Package, Trash2, Pencil, Check, X, Star } from "lucide-react";
 import { useChat } from "../../src/components/ChatDrawerProvider";
+import EditProductModal from "../../src/components/EditProductModal";
 
 export default function SellerDashboard() {
   const [data, setData] = useState<any>(null);
@@ -9,6 +10,8 @@ export default function SellerDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedProductForBuyer, setSelectedProductForBuyer] = useState<string | null>(null);
   const { openChat } = useChat();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string>("");
 
   // نظام اللغات المتزامن مع النافبار
   const [lang, setLang] = useState<"en" | "ar">("en");
@@ -210,7 +213,7 @@ export default function SellerDashboard() {
   const totalRevenue = soldProducts.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
   const totalFavorites = products.reduce((sum: number, p: any) => sum + (p.favoritesCount || 0), 0);
 
-  const renderTable = (title: string, color: string, filteredProducts: any[]) => {
+  const renderTable = (title: string, color: string, filteredProducts: any[], isEditable = false) => {
     return (
       <div className="bg-zinc-100 dark:bg-[#121212] rounded-2xl border-zinc-200 dark:border-white/10 overflow-visible relative">
         <div className="p-4 border-b border-zinc-200 dark:border-white/10 font-bold flex items-center gap-2">
@@ -260,6 +263,18 @@ export default function SellerDashboard() {
                     </div>
                   </td>
                   <td className="p-4 flex items-center gap-2 relative">
+                    {item.status === "Available" && (
+                      <button
+                        onClick={() => {
+                          setEditingProductId(item._id);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="text-zinc-500 hover:text-[#1F1547] dark:hover:text-[#D6C88A] p-1 transition-colors"
+                        title="Edit Product"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    )}
                     {item.status === "Reserved" && (
                       <div className="relative">
                         <button
@@ -317,6 +332,8 @@ export default function SellerDashboard() {
                       </button>
                     )}
 
+
+
                     <button
                       onClick={() => handleToggleHidden(item._id)}
                       className={`${item.isHidden ? 'text-amber-500' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'} p-1`}
@@ -361,7 +378,7 @@ export default function SellerDashboard() {
 
         <h2 className="text-lg font-bold mb-4 text-zinc-800 text-[#1F1547] dark:text-[#D6C88A]">{currentText.myAdsTitle}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {renderTable(currentText.activeAdsTitle, "text-green-500", activeProducts)}
+          {renderTable(currentText.activeAdsTitle, "text-green-500", activeProducts, true)}
           {renderTable(currentText.soldProductsTitle, "text-blue-500", soldProducts)}
         </div>
 
@@ -425,6 +442,14 @@ export default function SellerDashboard() {
           </table>
         </div>
       </div>
+      <EditProductModal
+        productId={editingProductId}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={() => {
+          fetchDashboard();
+        }}
+      />
     </div>
   );
 }

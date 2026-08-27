@@ -21,24 +21,24 @@ export default function LoginPage() {
   const [lang, setLang] = useState<"en" | "ar">("en");
 
   useEffect(() => {
-        const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
-        if (savedLang) {
-          setLang(savedLang);
-        }
-    
-        const handleLanguageChange = () => {
-          const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
-          if (currentLang && (currentLang === "en" || currentLang === "ar")) {
-            setLang(currentLang);
-          }
-        };
-    
-        window.addEventListener("languageChanged", handleLanguageChange);
-    
-        return () => {
-          window.removeEventListener("languageChanged", handleLanguageChange);
-        };
-      }, []);
+    const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+    if (savedLang) {
+      setLang(savedLang);
+    }
+
+    const handleLanguageChange = () => {
+      const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+      if (currentLang && (currentLang === "en" || currentLang === "ar")) {
+        setLang(currentLang);
+      }
+    };
+
+    window.addEventListener("languageChanged", handleLanguageChange);
+
+    return () => {
+      window.removeEventListener("languageChanged", handleLanguageChange);
+    };
+  }, []);
 
   const t = {
     en: {
@@ -141,13 +141,13 @@ export default function LoginPage() {
 
   return (
     <div className=" mt-[-50] w-full h-screen bg-[#f8f9fa] dark:bg-zinc-950 text-[#1F1547] dark:text-[#F0F2E3] flex overflow-hidden select-none" dir={lang === "ar" ? "rtl" : "ltr"}>
-     
-      
+
+
       {/* الجزء الأيسر */}
       <div className="w-full lg:w-1/2 h-full flex flex-col justify-between p-8 sm:p-16 relative z-10 bg-[#f8f9fa] dark:bg-zinc-950 transition-colors duration-300">
         <div className="absolute inset-x-0 top-1/4 bg-[#D6C88A]/5 blur-[120px] rounded-full pointer-events-none max-w-md mx-auto h-72" />
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md mx-auto space-y-8 pt-15"
@@ -157,27 +157,27 @@ export default function LoginPage() {
               {step === "login" ? currentText.welcomeBack : currentText.verifyAccount}
             </h2>
             <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500">
-              {step === "login" 
-                ? currentText.loginSub 
+              {step === "login"
+                ? currentText.loginSub
                 : currentText.otpSub(email)}
             </p>
           </div>
 
           <AnimatePresence mode="wait">
             {step === "login" ? (
-              <motion.div 
-                key="login-stage" 
-                initial={{ opacity: 0, x: -10 }} 
-                animate={{ opacity: 1, x: 0 }} 
-                exit={{ opacity: 0, x: 10 }} 
+              <motion.div
+                key="login-stage"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
                 className="space-y-5"
               >
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">{currentText.emailLabel}</label>
                   <div className="relative flex items-center">
                     <Mail size={16} className={`absolute ${lang === "ar" ? "right-4" : "left-4"} text-zinc-400`} />
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@example.com"
@@ -189,11 +189,18 @@ export default function LoginPage() {
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
                     <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">{currentText.passwordLabel}</label>
+                    {/* رابط نسيت كلمة المرور */}
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs font-semibold text-[#1F1547] dark:text-[#D6C88A] hover:underline transition-colors"
+                    >
+                      {lang === "ar" ? "نسيت كلمة المرور؟" : "Forgot Password?"}
+                    </Link>
                   </div>
                   <div className="relative flex items-center">
                     <Lock size={16} className={`absolute ${lang === "ar" ? "right-4" : "left-4"} text-zinc-400`} />
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
@@ -202,7 +209,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={handleLogin}
                   className="w-full h-12 rounded-xl bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547] font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm"
                 >

@@ -27,6 +27,17 @@ export default function CategoriesSlider({ isOpen, onClose }: CategoriesSliderPr
     const [lang, setLang] = useState<"en" | "ar">("en");
 
     useEffect(() => {
+        if (isOpen) {
+          document.body.style.overflow = "hidden"; // قفل سكرول الخلفية
+        } else {
+          document.body.style.overflow = "unset";  // إعادة السكرول عند الغلق
+        }
+        return () => {
+          document.body.style.overflow = "unset";
+        };
+      }, [isOpen]);
+
+    useEffect(() => {
         const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
         if (savedLang) {
             setLang(savedLang);

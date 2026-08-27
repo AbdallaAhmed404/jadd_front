@@ -10,8 +10,23 @@ export default function ProductRegistry() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/product`);
+      // 1. جلب التوكن المخزن
+      const token = localStorage.getItem("jadd-admin-token");
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/product`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // 2. إرسال التوكن مع الطلب
+        }
+      });
+
       const result = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(result.message || "Failed to fetch products");
+      }
+
       if (result.success) setProducts(result.data);
     } catch (error) {
       console.error("Error:", error);

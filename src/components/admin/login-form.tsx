@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import Logo from "@/src/components/global/logo";
 
 interface LoginFormValues {
   username: string;
@@ -26,12 +25,29 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setServerError(null);
-    console.log("AUTHENTICATION_SEQUENCE: Initializing for", data.username);
-    
-    // STUB: For decoupled frontend development, we simulate a successful login.
-    setTimeout(() => {
-        router.push("/admin");
-    }, 800);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.username,
+          password: data.password,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || "Something went wrong");
+      }
+
+      // تخزين التوكن بالاسم الجديد المطلوب
+      localStorage.setItem("jadd-admin-token", result.token);
+
+      router.push("/admin");
+    } catch (error: any) {
+      setServerError(error.message || "Failed to connect to server");
+    }
   };
 
   return (
@@ -42,25 +58,12 @@ export default function LoginForm() {
         transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
         className="flex flex-col space-y-8"
       >
-
-        <div className="flex flex-col items-center text-center space-y-6">
-          <Logo className="w-24 h-24 md:w-32 md:h-32 mb-2" />
-          <div className="space-y-2">
-            <h1 className="text-2xl font-medium tracking-tight text-white">
-              Command Center
-            </h1>
-            <p className="text-xs text-white/40 font-mono uppercase tracking-[0.2em]">
-              Identity Verification Required
-            </p>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {serverError && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-500/10 border border-red-500/20 p-3 text-[10px] text-red-500 font-mono uppercase tracking-widest text-center"
+              className="bg-red-500/10 border border-red-500/20 p-3 text-[10px] text-red-500 font-mono uppercase tracking-widest text-center rounded-sm"
             >
               Error: {serverError}
             </motion.div>
@@ -69,9 +72,9 @@ export default function LoginForm() {
             <input
               {...register("username", { required: true })}
               type="text"
-              placeholder="Username"
+              placeholder="Email / Username"
               className={cn(
-                "w-full bg-white/3 border border-white/10 py-3 px-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-white/30 focus:bg-white/5 transition-all duration-300 rounded-sm",
+                "w-full bg-white/[0.03] border border-white/10 py-3 px-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-white/30 focus:bg-white/5 transition-all duration-300 rounded-sm",
                 errors.username && "border-red-900/50"
               )}
             />
@@ -99,7 +102,7 @@ export default function LoginForm() {
           <button
             disabled={isSubmitting}
             type="submit"
-            className="w-full bg-white text-black py-3 text-sm font-semibold rounded-sm flex items-center justify-center gap-2 hover:bg-scarab-gold transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="w-full bg-white text-black py-3 text-sm font-semibold rounded-sm flex items-center justify-center gap-2 hover:bg-[#D4AF37] transition-colors duration-500 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
@@ -111,12 +114,6 @@ export default function LoginForm() {
             )}
           </button>
         </form>
-
-        <div className="flex justify-center pt-4">
-          <div className="text-[10px] text-white/20 font-mono uppercase tracking-widest border-t border-white/5 pt-4 w-full text-center">
-            Secured by Scarabix Protocol // 2026
-          </div>
-        </div>
       </motion.div>
     </div>
   );

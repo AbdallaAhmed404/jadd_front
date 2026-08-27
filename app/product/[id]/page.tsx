@@ -319,31 +319,30 @@ export default function ProductDetailsPage() {
                                         <span>OMR</span>
                                     )}
                                 </div>
-                                {!localStorage.getItem("jadd-token") ? (
-                                    <button
-                                        onClick={() => router.push("/login")}
-                                        className="flex items-center gap-2 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-2xl font-bold hover:border-[#1F1547] hover:text-[#1F1547] dark:hover:border-[#D6C88A] dark:hover:text-[#D6C88A]  transition-all"
-                                    >
-                                        {currentText.makeAnOffer}
-                                    </button>
-                                ) : acceptedOffer ? (
-                                    // حالة: يوجد عرض مقبول (أعلى أولوية)
-                                    <div className="px-4 py-2 rounded-2xl font-bold text-sm bg-green-100 text-green-700">
-                                        {currentText.offerAccepted}: {acceptedOffer.offerPrice} {lang === "ar" ? "رع" : "OMR"}. {currentText.contactSeller}
-                                    </div>
-                                ) : pendingOffer ? (
-                                    // حالة: لا يوجد مقبول، لكن يوجد عرض معلق
-                                    <div className="px-4 py-2 rounded-2xl font-bold text-sm bg-amber-100 text-amber-700">
-                                        {currentText.offerPending}
-                                    </div>
-                                ) : (
-                                    // حالة: لا يوجد مقبول ولا معلق (إما لا توجد عروض أو كلها مرفوضة)
-                                    <button
-                                        onClick={() => setShowOfferModal(true)}
-                                        className="flex items-center gap-2 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-2xl font-bold hover:border-[#1F1547] hover:text-[#1F1547] dark:hover:border-[#D6C88A] dark:hover:text-[#D6C88A]  transition-all"
-                                    >
-                                        {currentText.makeAnOffer}
-                                    </button>
+                                {!data?.isOwner && (
+                                    !localStorage.getItem("jadd-token") ? (
+                                        <button
+                                            onClick={() => router.push("/login")}
+                                            className="flex items-center gap-2 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-2xl font-bold hover:border-[#1F1547] hover:text-[#1F1547] dark:hover:border-[#D6C88A] dark:hover:text-[#D6C88A]  transition-all"
+                                        >
+                                            {currentText.makeAnOffer}
+                                        </button>
+                                    ) : acceptedOffer ? (
+                                        <div className="px-4 py-2 rounded-2xl font-bold text-sm bg-green-100 text-green-700">
+                                            {currentText.offerAccepted}: {acceptedOffer.offerPrice} {lang === "ar" ? "رع" : "OMR"}. {currentText.contactSeller}
+                                        </div>
+                                    ) : pendingOffer ? (
+                                        <div className="px-4 py-2 rounded-2xl font-bold text-sm bg-amber-100 text-amber-700">
+                                            {currentText.offerPending}
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setShowOfferModal(true)}
+                                            className="flex items-center gap-2 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-2xl font-bold hover:border-[#1F1547] hover:text-[#1F1547] dark:hover:border-[#D6C88A] dark:hover:text-[#D6C88A]  transition-all"
+                                        >
+                                            {currentText.makeAnOffer}
+                                        </button>
+                                    )
                                 )}
                             </div>
                         </div>
@@ -456,18 +455,20 @@ export default function ProductDetailsPage() {
                                 </div>
                             </div>
 
-                            <div onClick={(e) => e.preventDefault()}>
-                                <button onClick={() => {
-                                    if (checkAuth()) handleStartChat();
-                                }} className="bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-black px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-[#1F1547]/20 dark:shadow-[#D6C88A]/20 hover:scale-105 transition-transform">
-                                    <MessageSquare size={18} /> {currentText.chat}
-                                </button>
-                            </div>
+                            {!data?.isOwner && (
+                                <div onClick={(e) => e.preventDefault()}>
+                                    <button onClick={() => {
+                                        if (checkAuth()) handleStartChat();
+                                    }} className="bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-black px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-[#1F1547]/20 dark:shadow-[#D6C88A]/20 hover:scale-105 transition-transform">
+                                        <MessageSquare size={18} /> {currentText.chat}
+                                    </button>
+                                </div>
+                            )}
                         </Link>
 
                         {/* زر شراء الآن */}
                         {/* زر شراء الآن (يظهر فقط إذا لم يكن هناك عرض معلق أو مقبول) */}
-                        {!acceptedOffer && !pendingOffer && (
+                        {!data?.isOwner && !acceptedOffer && !pendingOffer && (
                             <button
                                 onClick={async () => {
                                     if (!checkAuth()) return;

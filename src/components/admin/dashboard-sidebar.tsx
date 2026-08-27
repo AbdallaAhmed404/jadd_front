@@ -27,8 +27,6 @@ const NAV_ITEMS = [
   { label: "Categories", icon: Tag, href: "/admin/finance" },
   { label: "Identity", icon: IdCard, href: "/admin/projects" },
   { label: "Reports", icon: AlertTriangle, href: "/admin/planning" },
-  // { label: "Time Logs", icon: Zap, href: "/admin/time-logs" },
-  // { label: "Audit Logs", icon: Eye, href: "/admin/audit-logs" },
 ];
 
 export default function DashboardSidebar() {
@@ -44,6 +42,8 @@ export default function DashboardSidebar() {
     });
 
     if (confirmed) {
+      // مسح التوكن بالاسم الصحيح من اللوكال ستورج
+      localStorage.removeItem("jadd-admin-token");
       router.push("/admin/login");
     }
   };

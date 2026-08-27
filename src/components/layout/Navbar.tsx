@@ -55,19 +55,17 @@ export default function Navbar() {
 
   // قائمة المدن للاختيار اليدوي
   const manualLocations = [
-    { name: { ar: "القاهرة", en: "Cairo" }, lat: 30.0444, lng: 31.2357 },
-    { name: { ar: "الإسكندرية", en: "Alexandria" }, lat: 31.2001, lng: 29.9187 },
     { name: { ar: "مسقط", en: "Muscat" }, lat: 23.5859, lng: 58.4059 },
     { name: { ar: "ظفار", en: "Dhofar" }, lat: 17.0151, lng: 54.0924 },
-    { name: { ar: "مسندم", en: "Musandam" }, lat: 26.1985, lng: 56.2465 },
-    { name: { ar: "البريمي", en: "Al Buraimi" }, lat: 24.2513, lng: 55.7932 },
-    { name: { ar: "الداخلية", en: "Al Dakhiliyah" }, lat: 22.9004, lng: 57.5332 },
-    { name: { ar: "شمال الباطنة", en: "North Al Batinah" }, lat: 24.3473, lng: 56.7323 },
+     { name: { ar: "شمال الباطنة", en: "North Al Batinah" }, lat: 24.3473, lng: 56.7323 },
     { name: { ar: "جنوب الباطنة", en: "South Al Batinah" }, lat: 23.3911, lng: 57.8631 },
+    { name: { ar: "الداخلية", en: "Al Dakhiliyah" }, lat: 22.9004, lng: 57.5332 },
     { name: { ar: "شمال الشرقية", en: "North Al Sharqiyah" }, lat: 22.6937, lng: 58.5306 },
     { name: { ar: "جنوب الشرقية", en: "South Al Sharqiyah" }, lat: 22.5667, lng: 59.5289 },
-    { name: { ar: "الظاهرة", en: "Al Dhahirah" }, lat: 23.2353, lng: 56.5447 },
+     { name: { ar: "الظاهرة", en: "Al Dhahirah" }, lat: 23.2353, lng: 56.5447 },
+    { name: { ar: "البريمي", en: "Al Buraimi" }, lat: 24.2513, lng: 55.7932 },
     { name: { ar: "الوسطى", en: "Al Wusta" }, lat: 19.9575, lng: 57.0818 },
+    { name: { ar: "مسندم", en: "Musandam" }, lat: 26.1985, lng: 56.2465 },
   ];
 
   // دالة الحفظ وإرسال الموقع للباك اند
@@ -896,7 +894,7 @@ export default function Navbar() {
                     onClick={() => setIsManualSubMenuOpen(!isManualSubMenuOpen)}
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#232152] dark:text-jadd-gold hover:bg-jadd-ivory/50 dark:hover:bg-zinc-800 rounded-lg transition-colors mb-1 border-b border-border/40 pb-2"
                   >
-                    <span>{lang === "ar" ? "أو اختر يدوياً:" : "Or select manually:"}</span>
+                    <span>{lang === "ar" ? "أو اختر المحافظة:" : "Or select manually:"}</span>
                     {/* سهم يتغير اتجاهه بناءً على حالة الفتح والإغلاق */}
                     <span className={`transform transition-transform ${isManualSubMenuOpen ? (lang === "ar" ? "-rotate-90" : "rotate-90") : "rotate-0"}`}>
                       ▶

@@ -184,7 +184,11 @@ export default function CategoryPage() {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`)
       .then((res) => res.json())
       .then((data) => {
-        const categoriesList = data.data || data;
+        // استخراج المصفوفة بأمان سواء كانت مباشرة أو داخل data.data
+        const categoriesList = Array.isArray(data) 
+          ? data 
+          : (Array.isArray(data?.data) ? data.data : []);
+
         const currentCat = categoriesList.find((cat: any) => {
           if (!cat.name) return false;
           if (typeof cat.name === "object") {

@@ -1,0 +1,460 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Camera, Video, Loader2, MapPin, CheckCircle2, X } from "lucide-react";
+import toast from "react-hot-toast";
+
+interface Category {
+  _id: string;
+  name: {
+    ar: string;
+    en: string;
+  };
+}
+
+interface EditProductModalProps {
+  productId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void; // لتحديث جدول أو قائمة المنتجات بعد التعديل الناجح
+}
+
+export default function EditProductModal({ productId, isOpen, onClose, onSuccess }: EditProductModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [locating, setLocating] = useState(false);
+  
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [existingVideo, setExistingVideo] = useState<string>("");
+
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    price: "",
+    category: "",
+    condition: "",
+    latitude: "",
+    longitude: ""
+  });
+
+  const [lang, setLang] = useState<"en" | "ar">("en");
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden"; // قفل سكرول الخلفية
+    } else {
+      document.body.style.overflow = "unset";  // إعادة السكرول عند الغلق
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+    if (savedLang) setLang(savedLang);
+
+    const handleLanguageChange = () => {
+      const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+      if (currentLang && (currentLang === "en" || currentLang === "ar")) {
+        setLang(currentLang);
+      }
+    };
+
+    window.addEventListener("languageChanged", handleLanguageChange);
+    return () => window.removeEventListener("languageChanged", handleLanguageChange);
+  }, []);
+
+  const t = {
+    en: {
+      modalTitle: "Edit Product",
+      uploadText: "Upload up to 7 photos & 1 video",
+      titlePlaceholder: "Ad Title",
+      descPlaceholder: "Product Description...",
+      pricePlaceholder: "Price (OMR)",
+      selectCategory: "Select Category",
+      condition: "Condition",
+      new: "New",
+      likeNew: "Like New",
+      usedClean: "Used - Clean",
+      usedFair: "Used - Fair",
+      getLocation: "Detect My Location (GPS)",
+      locationCaptured: "Location Captured Successfully!",
+      locationRequired: "Please detect your location using GPS",
+      publish: "Update Listing",
+      successMsg: "Listing updated successfully!",
+      errorMsg: "Something went wrong. Please try again.",
+      loadingData: "Loading product data..."
+    },
+    ar: {
+      modalTitle: "تعديل المنتج",
+      uploadText: "ارفع حتى 7 صور وفيديو واحد",
+      titlePlaceholder: "عنوان الإعلان",
+      descPlaceholder: "وصف المنتج...",
+      pricePlaceholder: "السعر (رع)",
+      selectCategory: "اختر القسم",
+      condition: "الحالة",
+      new: "جديد",
+      likeNew: "كأنه جديد",
+      usedClean: "مستعمل نظيف",
+      usedFair: "مستعمل مقبول",
+      getLocation: "تحديد موقعي الحالي (GPS)",
+      locationCaptured: "تم تحديث الموقع بنجاح!",
+      locationRequired: "يرجى تحديد موقعك الجغرافي عبر الـ GPS",
+      publish: "تحديث الإعلان",
+      successMsg: "تم تحديث الإعلان بنجاح!",
+      errorMsg: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      loadingData: "جاري تحميل بيانات المنتج..."
+    }
+  };
+
+  const currentText = t[lang];
+
+  // جلب الأقسام وبيانات المنتج عند فتح الـ Modal
+  useEffect(() => {
+    if (!isOpen || !productId) return;
+
+    setFetching(true);
+
+    // 1. جلب الأقسام
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/categories`)
+      .then((res) => res.json())
+      .then((data) => {
+        const cats = data.data || (Array.isArray(data) ? data : []);
+        setCategories(cats);
+      })
+      .catch((err) => console.error("Error fetching categories:", err));
+
+    // 2. جلب بيانات المنتج
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/product/${productId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const product = data.product || data;
+        if (product) {
+          setFormData({
+            title: product.title || "",
+            description: product.description || "",
+            price: product.price ? product.price.toString() : "",
+            category: product.category?._id || product.category || "",
+            condition: product.condition || "",
+            latitude: product.location?.latitude ? product.location.latitude.toString() : "",
+            longitude: product.location?.longitude ? product.location.longitude.toString() : ""
+          });
+          setExistingImages(product.images || []);
+          setExistingVideo(product.video || "");
+        }
+        setFetching(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching product details:", err);
+        toast.error("Failed to load product details");
+        setFetching(false);
+      });
+  }, [isOpen, productId]);
+
+  if (!isOpen) return null;
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString()
+        }));
+        setLocating(false);
+        toast.success(currentText.locationCaptured);
+      },
+      (error) => {
+        setLocating(false);
+        toast.error("Unable to retrieve your location. Please allow location access.");
+        console.error(error);
+      }
+    );
+  };
+
+  const handleMixedFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      const newImages = filesArray.filter(file => file.type.startsWith("image/"));
+      const newVideo = filesArray.find(file => file.type.startsWith("video/"));
+
+      const totalImagesCount = existingImages.length + imageFiles.length + newImages.length;
+
+      if (newImages.length > 0) {
+        if (totalImagesCount > 7) {
+          toast.error("Maximum 7 images allowed in total");
+        }
+        setImageFiles((prev) => [...prev, ...newImages].slice(0, 7 - existingImages.length));
+      }
+
+      if (newVideo) {
+        setExistingVideo("");
+        setVideoFile(newVideo);
+      }
+    }
+  };
+
+  const handleRemoveExistingImage = (indexToRemove: number) => {
+    setExistingImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleRemoveNewImage = (indexToRemove: number) => {
+    setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleRemoveExistingVideo = () => {
+    setExistingVideo("");
+  };
+
+  const handleRemoveNewVideo = () => {
+    setVideoFile(null);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!formData.latitude || !formData.longitude) {
+      toast.error(currentText.locationRequired);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const newImageUrls = await Promise.all(
+        imageFiles.map(async (file) => {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/get-upload-url`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ folder: "products", filename: file.name, contentType: file.type }),
+          });
+          const { signedUrl, publicUrl } = await res.json();
+          await fetch(signedUrl, { method: "PUT", body: file });
+          return publicUrl;
+        })
+      );
+
+      const finalImages = [...existingImages, ...newImageUrls];
+
+      let finalVideoUrl = existingVideo;
+      if (videoFile) {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/get-upload-url`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folder: "products", filename: videoFile.name, contentType: videoFile.type }),
+        });
+        const { signedUrl, publicUrl } = await res.json();
+        await fetch(signedUrl, { method: "PUT", body: videoFile });
+        finalVideoUrl = publicUrl;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/updateProduct/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("jadd-token")}`,
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          price: Number(formData.price),
+          category: formData.category,
+          condition: formData.condition,
+          images: finalImages,
+          video: finalVideoUrl,
+          location: {
+            latitude: Number(formData.latitude),
+            longitude: Number(formData.longitude)
+          }
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update product");
+
+      toast.success(currentText.successMsg);
+      onSuccess(); // تحديث القائمة في الصفحة الأساسية
+      onClose();   // إغلاق البوب أب
+    } catch (error) {
+      toast.error(currentText.errorMsg);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+
+  const hasMedia = existingImages.length > 0 || imageFiles.length > 0 || existingVideo !== "" || videoFile !== null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="relative w-full max-w-4xl bg-white dark:bg-zinc-950 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 my-8 max-h-[80vh] overflow-y-auto">
+        
+        {/* زر الإغلاق (X) */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+        >
+          <X size={20} />
+        </button>
+
+        <h2 className="text-xl font-bold mb-6 text-zinc-800 dark:text-zinc-100">
+          {currentText.modalTitle}
+        </h2>
+
+        {fetching ? (
+          <div className="flex items-center justify-center py-20 gap-2 text-zinc-500 font-bold">
+            <Loader2 className="animate-spin" size={24} />
+            <span>{currentText.loadingData}</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              {hasMedia && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4 mb-2">
+                  {existingImages.map((url, index) => (
+                    <div key={`exist-img-${index}`} className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900">
+                      <img src={url} alt={`existing preview ${index}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingImage(index)}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {imageFiles.map((file, index) => (
+                    <div key={`new-img-${index}`} className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900">
+                      <img src={URL.createObjectURL(file)} alt={`new preview ${index}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewImage(index)}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {existingVideo && !videoFile && (
+                    <div className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                      <video src={existingVideo} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={handleRemoveExistingVideo}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+
+                  {videoFile && (
+                    <div className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                      <video src={URL.createObjectURL(videoFile)} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={handleRemoveNewVideo}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(existingImages.length + imageFiles.length < 7 || (!existingVideo && !videoFile)) && (
+                <label className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl p-6 flex flex-col items-center justify-center text-zinc-400 hover:border-[#D6C88A] transition-colors cursor-pointer bg-white dark:bg-zinc-900">
+                  <span className="text-xs font-bold text-center">
+                    {currentText.uploadText}
+                  </span>
+                  <input type="file" multiple accept="image/*,video/*" onChange={handleMixedFilesChange} className="hidden" />
+                </label>
+              )}
+            </div>
+
+            <div className="grid gap-4">
+              <input name="title" onChange={handleChange} value={formData.title} placeholder={currentText.titlePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+              <textarea name="description" onChange={handleChange} value={formData.description} placeholder={currentText.descPlaceholder} className="w-full h-32 p-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="price" type="number" onChange={handleChange} value={formData.price} placeholder={currentText.pricePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+
+                <select name="category" onChange={handleChange} value={formData.category} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
+                  <option value="">{currentText.selectCategory}</option>
+                  {categories.map((cat) => {
+                    const categoryName = lang === "ar" ? cat.name.ar : cat.name.en;
+                    return (
+                      <option key={cat._id} value={cat._id}>
+                        {categoryName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <select name="condition" onChange={handleChange} value={formData.condition} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
+                <option value="">{currentText.condition}</option>
+                <option value="New">{currentText.new}</option>
+                <option value="Like New">{currentText.likeNew}</option>
+                <option value="Used - Clean">{currentText.usedClean}</option>
+                <option value="Used - Fair">{currentText.usedFair}</option>
+              </select>
+
+              {/* زر تحديد الموقع الجغرافي */}
+              <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 border rounded-xl p-4">
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  disabled={locating}
+                  className="flex items-center gap-2 bg-[#1F1547] text-white dark:bg-[#D6C88A] dark:text-[#1F1547] px-4 py-2.5 rounded-lg text-xs font-bold transition-all hover:opacity-90"
+                >
+                  {locating ? <Loader2 className="animate-spin" size={16} /> : <MapPin size={16} />}
+                  {currentText.getLocation}
+                </button>
+                {formData.latitude && formData.longitude ? (
+                  <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-bold">
+                    <CheckCircle2 size={16} />
+                    <span>{currentText.locationCaptured}</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-zinc-400">
+                    {lang === "ar" ? "مطلوب لتفعيل الفلترة والترتيب بالأقرب للمشترين" : "Required for distance sorting"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-xl bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547] font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : currentText.publish}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}

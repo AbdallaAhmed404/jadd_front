@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Trash2, Plus, Tag, Loader2, X } from "lucide-react";
+import { Trash2, Plus, Tag, Loader2, X, GripVertical } from "lucide-react";
 
 export default function CategoryRegistry() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -10,24 +10,42 @@ export default function CategoryRegistry() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // حالة لتخزين العنصر الذي يتم سحبه حالياً
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`)
+    // 1. جلب التوكن من الـ localStorage
+    const token = localStorage.getItem("jadd-admin-token");
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` // 2. إرسال التوكن مع الطلب
+      }
+    })
       .then((res) => res.json())
-      .then((data) => { setCategories(data.data || []); setLoading(false); });
+      .then((data) => {
+        setCategories(data.data || []);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+        setLoading(false);
+      });
   }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryAr.trim() || !newCategoryEn.trim()) return;
-    
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        name: { 
-          ar: newCategoryAr, 
-          en: newCategoryEn 
-        } 
+      body: JSON.stringify({
+        name: {
+          ar: newCategoryAr,
+          en: newCategoryEn
+        }
       })
     });
     const result = await res.json();
@@ -42,6 +60,43 @@ export default function CategoryRegistry() {
   const handleDelete = async (id: string) => {
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories/${id}`, { method: "DELETE" });
     setCategories(categories.filter(c => c._id !== id));
+  };
+
+  // دوال الـ Drag and Drop
+  const handleDragStart = (index: number) => {
+    setDraggedItemIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (targetIndex: number) => {
+    if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+
+    const updatedCategories = [...categories];
+    const [movedItem] = updatedCategories.splice(draggedItemIndex, 1);
+    updatedCategories.splice(targetIndex, 0, movedItem);
+
+    setCategories(updatedCategories);
+    setDraggedItemIndex(null);
+
+    // إرسال الترتيب الجديد للباك إند
+    try {
+      const token = localStorage.getItem("jadd-token");
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories/reorder`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orderedIds: updatedCategories.map(c => c._id)
+        })
+      });
+    } catch (error) {
+      console.error("Failed to update order", error);
+    }
   };
 
   return (
@@ -60,22 +115,22 @@ export default function CategoryRegistry() {
           <form onSubmit={handleAdd} className="bg-[#121212] border border-white/10 p-6 rounded-2xl w-full max-w-md space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg">Add New Category</h3>
-              <button type="button" onClick={() => setIsModalOpen(false)}><X size={20}/></button>
+              <button type="button" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
             </div>
-            <input 
-              autoFocus 
-              type="text" 
-              placeholder="Category name (Arabic)..." 
-              className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" 
-              value={newCategoryAr} 
-              onChange={(e) => setNewCategoryAr(e.target.value)} 
+            <input
+              autoFocus
+              type="text"
+              placeholder="Category name (Arabic)..."
+              className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]"
+              value={newCategoryAr}
+              onChange={(e) => setNewCategoryAr(e.target.value)}
             />
-            <input 
-              type="text" 
-              placeholder="Category name (English)..." 
-              className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" 
-              value={newCategoryEn} 
-              onChange={(e) => setNewCategoryEn(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Category name (English)..."
+              className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]"
+              value={newCategoryEn}
+              onChange={(e) => setNewCategoryEn(e.target.value)}
             />
             <button type="submit" className="w-full bg-[#D4AF37] text-black py-3 rounded-xl font-bold hover:bg-[#b8962d]">Save Category</button>
           </form>
@@ -89,9 +144,17 @@ export default function CategoryRegistry() {
               <tr><th className="p-5">Category Name (AR / EN)</th><th className="p-5 text-center">Actions</th></tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {categories.map((c) => (
-                <tr key={c._id} className="hover:bg-white/[0.03] transition-colors">
-                  <td className="p-5 font-bold">
+              {categories.map((c, index) => (
+                <tr
+                  key={c._id}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(index)}
+                  className="hover:bg-white/[0.03] transition-colors cursor-grab active:cursor-grabbing"
+                >
+                  <td className="p-5 font-bold flex items-center gap-3">
+                    <GripVertical size={18} className="text-zinc-600" />
                     <span>{c.name?.ar} / {c.name?.en}</span>
                   </td>
                   <td className="p-5 text-center">
