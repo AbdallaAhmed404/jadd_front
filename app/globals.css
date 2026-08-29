@@ -64,6 +64,9 @@
     background-color: #C5B37D;
   }
 }
+.yarl__root {
+  --yarl__color_backdrop: rgba(0, 0, 0, 0.8) !important;
+}
 
 @utility glass-card {
   background: rgba(255, 255, 255, 0.03);

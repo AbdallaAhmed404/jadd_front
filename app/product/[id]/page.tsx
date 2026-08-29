@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Heart, MessageSquare, Tag, ChevronLeft, Star, ChevronRight, Loader2, Video } from "lucide-react";
+import { Heart, MessageSquare, Tag, ChevronLeft, Star, ChevronRight, Loader2, Video, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useChat } from "../../../src/components/ChatDrawerProvider";
 import toast from "react-hot-toast";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
 
 export default function ProductDetailsPage() {
     const { id } = useParams();
@@ -20,6 +23,11 @@ export default function ProductDetailsPage() {
     const [showOfferModal, setShowOfferModal] = useState(false);
     const [offerPrice, setOfferPrice] = useState("");
     const [myOffers, setMyOffers] = useState<any[]>([]);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState("");
+    const [customReason, setCustomReason] = useState("");
+
 
     // نظام اللغات المتزامن مع النافبار
     const [lang, setLang] = useState<"en" | "ar">("en");
@@ -69,6 +77,21 @@ export default function ProductDetailsPage() {
             buyNow: "Buy Now",
             buyNowSent: "Purchase request sent successfully!",
             buyNowFailed: "Failed to send purchase request",
+            reportAd: "Report Ad",
+            reportReasons: {
+                fraud: "Fraud",
+                duplicate: "Duplicate ad",
+                notExisting: "Product not existing",
+                inappropriate: "Inappropriate content",
+                misleading: "Misleading price",
+                other: "Other reasons"
+            },
+            reportSubmit: "Submit Report",
+            reportSuccess: "Report submitted successfully",
+            reportFailed: "Failed to submit report",
+            selectReason: "Please select a reason",
+            shareAd: "Share",
+            linkCopied: "Link copied to clipboard!"
         },
         ar: {
             description: "الوصف",
@@ -94,6 +117,21 @@ export default function ProductDetailsPage() {
             buyNow: "شراء الآن",
             buyNowSent: "تم إرسال طلب الشراء بنجاح!",
             buyNowFailed: "فشل إرسال طلب الشراء",
+            reportAd: "الإبلاغ عن الإعلان",
+            reportReasons: {
+                fraud: "احتيال",
+                duplicate: "إعلان مكرر",
+                notExisting: "منتج غير موجود",
+                inappropriate: "محتوى غير مناسب",
+                misleading: "سعر مضلل",
+                other: "أسباب أخرى"
+            },
+            reportSubmit: "إرسال البلاغ",
+            reportSuccess: "تم إرسال البلاغ بنجاح",
+            reportFailed: "فشل إرسال البلاغ",
+            selectReason: "الرجاء اختيار السبب",
+            shareAd: "مشاركة",
+            linkCopied: "تم نسخ الرابط بنجاح!"
         }
     };
 
@@ -207,7 +245,11 @@ export default function ProductDetailsPage() {
                     <div className="md:col-span-6 order-1 md:order-2">
                         <div className="sticky top-35 space-y-4">
                             {/* قسم المعاينة الكبرى */}
-                            <div className="relative aspect-[4/3] w-full bg-zinc-200 dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-sm">
+                            <div onClick={() => {
+                                if (!(product.video && activeImage === images.length)) {
+                                    setLightboxOpen(true);
+                                }
+                            }} className="relative aspect-[4/3] w-full bg-zinc-200 dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-sm">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={activeImage}
@@ -233,22 +275,27 @@ export default function ProductDetailsPage() {
                                 </AnimatePresence>
 
                                 {/* أزرار التنقل (يتم حساب إجمالي العناصر ليشمل الصور والفيديو إن وجد) */}
+                                {/* أزرار التنقل داخل الصورة */}
                                 {(images.length > 1 || product.video) && (
                                     <>
                                         <button
-                                            onClick={() => setActiveImage(p => (p === 0 ? (product.video ? images.length : images.length - 1) : p - 1))}
-                                            className={`absolute ${lang === "ar" ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 bg-white/90 dark:bg-white/20 p-2 rounded-full z-10`}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // منع فتح الـ Lightbox عند الضغط على الزر
+                                                setActiveImage(p => (p === 0 ? (product.video ? images.length : images.length - 1) : p - 1));
+                                            }}
+                                            className={`absolute ${lang === "ar" ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10 backdrop-blur-sm transition-all`}
                                         >
-                                            <ChevronLeft />
+                                            <ChevronLeft size={20} />
                                         </button>
                                         <button
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // منع فتح الـ Lightbox عند الضغط على الزر
                                                 const maxIndex = product.video ? images.length : images.length - 1;
                                                 setActiveImage(p => (p === maxIndex ? 0 : p + 1));
                                             }}
-                                            className={`absolute ${lang === "ar" ? "left-4" : "right-4"} top-1/2 -translate-y-1/2 bg-white/50 dark:bg-white/20 p-2 rounded-full z-10`}
+                                            className={`absolute ${lang === "ar" ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10 backdrop-blur-sm transition-all`}
                                         >
-                                            <ChevronRight />
+                                            <ChevronRight size={20} />
                                         </button>
                                     </>
                                 )}
@@ -296,7 +343,7 @@ export default function ProductDetailsPage() {
 
                         <div className="space-y-3">
                             <h3 className="font-bold text-xs text-zinc-400 uppercase">{currentText.description}</h3>
-                            <p className="text-1xl font-[600] text-[#232152]/70 dark:text-foreground/70">{product.description}</p>
+                            <p className="text-1xl font-[600] text-[#232152]/70 dark:text-foreground/70 whitespace-pre-line">{product.description}</p>
                         </div>
 
                         <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
@@ -319,7 +366,7 @@ export default function ProductDetailsPage() {
                                         <span>OMR</span>
                                     )}
                                 </div>
-                                {!data?.isOwner && (
+                                {!data?.isOwner && product.isNegotiable && (
                                     !localStorage.getItem("jadd-token") ? (
                                         <button
                                             onClick={() => router.push("/login")}
@@ -424,8 +471,92 @@ export default function ProductDetailsPage() {
                             </motion.div>
                         )}
 
-                        {/* كرت البائع الموحد (تحسين الـ UX) */}
-                        {/* ابحث عن هذا الجزء في الكود الخاص بك وقم بتعديله */}
+                        {showReportModal && (
+                            <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                                <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl w-full max-w-md border border-zinc-200 dark:border-zinc-800 shadow-2xl">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-bold text-lg dark:text-white">{currentText.reportAd}</h3>
+                                        <button onClick={() => setShowReportModal(false)} className="text-zinc-400 hover:text-red-500">✕</button>
+                                    </div>
+
+                                    <div className="space-y-3 mb-4">
+                                        {Object.entries(currentText.reportReasons).map(([key, label]) => (
+                                            key !== 'other' && (
+                                                <label key={key} className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                                                    <input
+                                                        type="radio"
+                                                        name="reportReason"
+                                                        value={label}
+                                                        onChange={(e) => setReportReason(e.target.value)}
+                                                        className="accent-[#1F1547]"
+                                                    />
+                                                    <span className="text-sm dark:text-zinc-200">{label}</span>
+                                                </label>
+                                            )
+                                        ))}
+
+                                        <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                                            <input
+                                                type="radio"
+                                                name="reportReason"
+                                                value="other"
+                                                onChange={() => setReportReason("other")}
+                                                className="accent-[#1F1547]"
+                                            />
+                                            <span className="text-sm dark:text-zinc-200">{currentText.reportReasons.other}</span>
+                                        </label>
+
+                                        {reportReason === "other" && (
+                                            <textarea
+                                                placeholder="..."
+                                                className="w-full p-3 rounded-xl border border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 outline-none text-sm"
+                                                value={customReason}
+                                                onChange={(e) => setCustomReason(e.target.value)}
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button onClick={() => setShowReportModal(false)} className="flex-1 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 font-bold text-sm">
+                                            {currentText.cancel}
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const finalContent = reportReason === "other" ? customReason : reportReason;
+                                                if (!finalContent) {
+                                                    toast.error(currentText.selectReason);
+                                                    return;
+                                                }
+                                                const token = localStorage.getItem("jadd-token");
+                                                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/report/${product.userId._id}`, {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                        "Authorization": `Bearer ${token}`
+                                                    },
+                                                    body: JSON.stringify({
+                                                        content: finalContent,
+                                                        productId: product._id
+                                                    })
+                                                });
+                                                if (res.ok) {
+                                                    toast.success(currentText.reportSuccess);
+                                                    setShowReportModal(false);
+                                                    setReportReason("");
+                                                    setCustomReason("");
+                                                } else {
+                                                    toast.error(currentText.reportFailed);
+                                                }
+                                            }}
+                                            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold text-sm hover:opacity-90"
+                                        >
+                                            {currentText.reportSubmit}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* كرت البائع الموحد مع التقييمات */}
                         <Link
                             href={`/sellerProfile/${product.userId?._id}`}
@@ -498,11 +629,37 @@ export default function ProductDetailsPage() {
                             </button>
                         )}
 
-                        <button onClick={() => {
-                            if (checkAuth()) toggleFavorite();
-                        }} className={`w-full flex items-center justify-center gap-2 py-3 border rounded-2xl transition-colors ${isFav ? 'bg-red-50 dark:bg-red-900/20  text-red-600' : 'text-zinc-500 border-zinc-200 dark:border-zinc-800'}`}>
-                            <Heart className={isFav ? "fill-red-500 text-red-500" : ""} /> {isFav ? currentText.removeFav : currentText.addFav}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {/* زر المفضلة */}
+                            <button onClick={() => {
+                                if (checkAuth()) toggleFavorite();
+                            }} className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-2xl transition-colors ${isFav ? 'bg-red-50 dark:bg-red-900/20 text-red-600 border-red-200' : 'text-zinc-500 border-zinc-200 dark:border-zinc-800'}`}>
+                                <Heart size={18} className={isFav ? "fill-red-500 text-red-500" : ""} />
+                                <span className="text-xs font-bold">{isFav ? currentText.removeFav : currentText.addFav}</span>
+                            </button>
+
+                            {/* زر المشاركة (نسخ الرابط) */}
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(window.location.href);
+                                    toast.success(currentText.linkCopied);
+                                }}
+                                className="flex-1 flex items-center justify-center gap-2 py-3 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-500 dark:text-zinc-400 hover:text-[#1F1547] dark:hover:text-[#D6C88A] hover:border-[#1F1547] dark:hover:border-[#D6C88A] transition-colors"
+                            >
+                                <Share2 size={18} />
+                                <span className="text-xs font-bold">{currentText.shareAd}</span>
+                            </button>
+
+                            {/* زر الإبلاغ */}
+                            <button
+                                onClick={() => {
+                                    if (checkAuth()) setShowReportModal(true);
+                                }}
+                                className="flex-1 flex items-center justify-center gap-2 py-3 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:border-red-500 transition-colors"
+                            >
+                                <span className="text-xs font-bold">{currentText.reportAd}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -532,6 +689,16 @@ export default function ProductDetailsPage() {
                     </div>
                 </div>
             </div>
+            <Lightbox
+                open={lightboxOpen}
+                close={() => setLightboxOpen(false)}
+                index={activeImage}
+                slides={images.map((img: string) => ({ src: img }))}
+                plugins={[Zoom]} // هذا هو المسئول عن ظهور زر التكبير داخل البوب أب
+                on={{
+                    view: ({ index }) => setActiveImage(index),
+                }}
+            />
         </div>
     );
 }

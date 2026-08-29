@@ -62,7 +62,9 @@ export default function SellerProfile() {
       reportSuccessToast: "Report sent successfully",
       reportErrorToast: "Failed to send report",
       listingsCountLabel: "Listings",
-      soldCountLabel: "Sold"
+      soldCountLabel: "Sold",
+      boughtCountLabel: "Bought",
+      reviewsCountLabel: "reviews"
     },
     ar: {
       loadingText: "جاري التحميل...",
@@ -85,7 +87,9 @@ export default function SellerProfile() {
       reportSuccessToast: "تم إرسال البلاغ بنجاح",
       reportErrorToast: "فشل إرسال البلاغ",
       listingsCountLabel: "إعلان",
-      soldCountLabel: "تم بيع"
+      soldCountLabel: "تم بيع",
+      boughtCountLabel: "تم شراء",
+      reviewsCountLabel: "تقييم"
     }
   };
 
@@ -195,25 +199,44 @@ export default function SellerProfile() {
           <div className={`space-y-4 text-center ${lang === "ar" ? "md:text-right" : "md:text-left"} flex-1`}>
             <div>
               <h1 className="text-3xl font-bold">{seller?.fullName}</h1>
-              
+
               {/* قسم التاريخ والإحصائيات الجديدة */}
+              {/* قسم التاريخ والإحصائيات والتقييمات */}
               <div className={`flex flex-wrap items-center justify-center ${lang === "ar" ? "md:justify-start" : "md:justify-start"} gap-4 mt-2 text-sm text-zinc-500`}>
                 <span className="flex items-center gap-1">
-                   {currentText.joinedPrefix}{seller?.createdAt ? new Date(seller.createdAt).getFullYear() : ""}
+                  {currentText.joinedPrefix}{seller?.createdAt ? new Date(seller.createdAt).getFullYear() : ""}
                 </span>
                 <span className="text-zinc-300 dark:text-zinc-700">•</span>
                 <span className="flex items-center gap-1">
-                   {stats.totalListings} {currentText.listingsCountLabel}
+                  {stats.totalListings} {currentText.listingsCountLabel}
                 </span>
                 <span className="text-zinc-300 dark:text-zinc-700">•</span>
                 <span className="flex items-center gap-1">
-                   {stats.soldListings} {currentText.soldCountLabel}
+                  {stats.soldListings} {currentText.soldCountLabel}
                 </span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                <span className="flex items-center gap-1">
+                  {stats.boughtListings || 0} {currentText.boughtCountLabel}
+                </span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+
+                {/* عرض التقييم والنجوم بنفس شكل صفحة المنتج */}
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center text-amber-500">
+                    <Star size={14} className="fill-current" />
+                  </div>
+                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    {data.sellerStats?.averageRating > 0 ? data.sellerStats.averageRating : "0.0"}
+                  </span>
+                  <span className="text-[10px] text-zinc-400">
+                    ({data.sellerStats?.reviewsCount || 0} {currentText.reviewsCountLabel})
+                  </span>
+                </div>
               </div>
             </div>
 
             <p className="text-zinc-600 dark:text-zinc-400 text-sm max-w-lg">{seller?.bio || currentText.noBio}</p>
-            
+
             <div className={`flex items-center justify-center ${lang === "ar" ? "md:justify-start" : "md:justify-start"} gap-2 text-[#232152] dark:text-[#D6C88A]`}>
               <ShieldCheck size={18} />
               <span className="text-xs font-bold uppercase tracking-wider">{currentText.verifiedSeller}</span>

@@ -37,11 +37,12 @@ export default function Navbar() {
   const [isManualSubMenuOpen, setIsManualSubMenuOpen] = useState(false);
 
   // نظام اللغات (عربي / إنجليزي)
-  const [lang, setLang] = useState<"en" | "ar">("en");
+  const [lang, setLang] = useState<"en" | "ar">("ar");
 
   // حالات الموقع الجغرافي
-  const [userLocation, setUserLocation] = useState<{ address: string; latitude: number | null; longitude: number | null }>({
-    address: lang === "ar" ? "الموقع الجغرافي" : "Location",
+  // حالات الموقع الجغرافي لتخزين الأسماء باللغتين
+  const [userLocation, setUserLocation] = useState<{ address: { ar: string; en: string }; latitude: number | null; longitude: number | null }>({
+    address: { ar: "الموقع الجغرافي", en: "Location" },
     latitude: null,
     longitude: null,
   });
@@ -57,12 +58,12 @@ export default function Navbar() {
   const manualLocations = [
     { name: { ar: "مسقط", en: "Muscat" }, lat: 23.5859, lng: 58.4059 },
     { name: { ar: "ظفار", en: "Dhofar" }, lat: 17.0151, lng: 54.0924 },
-     { name: { ar: "شمال الباطنة", en: "North Al Batinah" }, lat: 24.3473, lng: 56.7323 },
+    { name: { ar: "شمال الباطنة", en: "North Al Batinah" }, lat: 24.3473, lng: 56.7323 },
     { name: { ar: "جنوب الباطنة", en: "South Al Batinah" }, lat: 23.3911, lng: 57.8631 },
     { name: { ar: "الداخلية", en: "Al Dakhiliyah" }, lat: 22.9004, lng: 57.5332 },
     { name: { ar: "شمال الشرقية", en: "North Al Sharqiyah" }, lat: 22.6937, lng: 58.5306 },
     { name: { ar: "جنوب الشرقية", en: "South Al Sharqiyah" }, lat: 22.5667, lng: 59.5289 },
-     { name: { ar: "الظاهرة", en: "Al Dhahirah" }, lat: 23.2353, lng: 56.5447 },
+    { name: { ar: "الظاهرة", en: "Al Dhahirah" }, lat: 23.2353, lng: 56.5447 },
     { name: { ar: "البريمي", en: "Al Buraimi" }, lat: 24.2513, lng: 55.7932 },
     { name: { ar: "الوسطى", en: "Al Wusta" }, lat: 19.9575, lng: 57.0818 },
     { name: { ar: "مسندم", en: "Musandam" }, lat: 26.1985, lng: 56.2465 },
@@ -70,18 +71,18 @@ export default function Navbar() {
 
   // دالة الحفظ وإرسال الموقع للباك اند
   // دالة حفظ الموقع محلياً (تطبق على المستخدم المسجل والزائر بنفس الطريقة)
-  const saveLocationLocally = (locData: { address: string; latitude: number; longitude: number }) => {
+  const saveLocationLocally = (locData: { address: { ar: string; en: string }; latitude: number; longitude: number }) => {
     localStorage.setItem("user-location", JSON.stringify(locData));
     setUserLocation(locData);
     setIsLocationDropdownOpen(false);
     toast.success(lang === "ar" ? "تم تحديد الموقع بنجاح" : "Location set successfully");
 
-    // إطلاق حدث وهمي إذا احتجت لتحديث أي مكونات أخرى في الصفحة
     window.dispatchEvent(new Event("locationChanged"));
   };
 
   // دالة جلب الموقع عبر الـ GPS
   // دالة جلب الموقع عبر الـ GPS مع تحويل الإحداثيات لاسم مكان
+  // دالة جلب الموقع عبر الـ GPS مع تحويل الإحداثيات لاسم مكان باللغتين
   const handleGetGPSLocation = async () => {
     if (!navigator.geolocation) {
       toast.error(lang === "ar" ? "المتصفح لا يدعم تحديد الموقع" : "Geolocation is not supported");
@@ -94,24 +95,33 @@ export default function Navbar() {
         const lng = position.coords.longitude;
 
         try {
-          // استخدام خدمة Nominatim لتحويل الإحداثيات لاسم مكان
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=${lang}`
+          // جلب البيانات باللغة العربية أولاً
+          const responseAr = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`
           );
-          const data = await response.json();
+          const dataAr = await responseAr.json();
 
-          // استخراج اسم المنطقة أو المدينة أو العنوان
-          const address = data.address?.city || data.address?.town || data.address?.village || data.address?.state || "Unknown Location";
+          // جلب البيانات باللغة الإنجليزية ثانياً
+          const responseEn = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`
+          );
+          const dataEn = await responseEn.json();
 
+          // استخراج اسم المكان بالعربية
+          const cityAr = dataAr.address?.city || dataAr.address?.town || dataAr.address?.village || dataAr.address?.state || "الموقع الحالي";
+          
+          // استخراج اسم المكان بالإنجليزية
+          const cityEn = dataEn.address?.city || dataEn.address?.town || dataEn.address?.village || dataEn.address?.state || "Current Location";
+
+          // حفظ العنوان ككائن يحتوي على اللغتين تماماً مثل الاختيار اليدوي
           saveLocationLocally({
-            address: address, // الآن سيتم حفظ اسم المكان بدلاً من "Current Location"
+            address: { ar: cityAr, en: cityEn },
             latitude: lat,
             longitude: lng
           });
         } catch (error) {
-          // في حال فشل جلب الاسم، نكتفي بحفظ الإحداثيات أو رسالة افتراضية
           saveLocationLocally({
-            address: lang === "ar" ? "الموقع الحالي" : "Current Location",
+            address: { ar: "الموقع الحالي", en: "Current Location" },
             latitude: lat,
             longitude: lng
           });
@@ -128,7 +138,7 @@ export default function Navbar() {
     if (!userLocation.latitude && !userLocation.longitude) {
       setUserLocation(prev => ({
         ...prev,
-        address: lang === "ar" ? "الموقع الجغرافي" : "Location"
+        address: { ar: "الموقع الجغرافي", en: "Location" }
       }));
     }
   }, [lang]);
@@ -162,6 +172,10 @@ export default function Navbar() {
     const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
     if (savedLang) {
       setLang(savedLang);
+    } else {
+      // إذا لم يقم المستخدم بتحديد لغة مسبقاً، يتم حفظ وتفعيل العربية كافتراضي
+      setLang("ar");
+      localStorage.setItem("jadd-lang", "ar");
     }
   }, []);
 
@@ -870,7 +884,9 @@ export default function Navbar() {
               >
                 <MapPin size={14} className="text-[#232152] dark:text-jadd-gold shrink-0" />
                 <span className="max-w-[90px] truncate">
-                  {userLocation.address}
+                  {typeof userLocation.address === 'object' 
+                    ? userLocation.address[lang] 
+                    : userLocation.address}
                 </span>
               </button>
 
@@ -909,12 +925,12 @@ export default function Navbar() {
                           key={idx}
                           onClick={() => {
                             saveLocationLocally({
-                              address: lang === "ar" ? loc.name.ar : loc.name.en,
+                              address: loc.name, // تمرير كائن الاسم باللغتين معاً
                               latitude: loc.lat,
                               longitude: loc.lng
                             });
-                            setIsLocationDropdownOpen(false); // إغلاق القائمة الرئيسية بالكامل بعد الاختيار
-                            setIsManualSubMenuOpen(false);   // إغلاق القائمة الفرعية
+                            setIsLocationDropdownOpen(false);
+                            setIsManualSubMenuOpen(false);
                           }}
                           className="w-full text-start px-3 py-1.5 text-xs font-medium hover:bg-jadd-ivory/50 dark:hover:bg-zinc-800 rounded-lg transition-colors text-[#232152] dark:text-foreground"
                         >

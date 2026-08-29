@@ -25,10 +25,12 @@ export default function AddProductPage() {
     title: "",
     description: "",
     price: "",
+    isNegotiable: false,
     category: "",
     condition: "",
     latitude: "",
-    longitude: ""
+    longitude: "",
+    locationAddress: ""
   });
 
   const [lang, setLang] = useState<"en" | "ar">("en");
@@ -65,7 +67,9 @@ export default function AddProductPage() {
       locationRequired: "Please detect your location using GPS",
       publish: "Publish Listing",
       successMsg: "Listing published successfully!",
-      errorMsg: "Something went wrong. Please try again."
+      errorMsg: "Something went wrong. Please try again.",
+      negotiable: "Negotiable price",
+      mainImageNote: "The first image will be the main product display image", // النص الانجليزي الجديد
     },
     ar: {
       uploadText: "ارفع حتى 7 صور وفيديو واحد",
@@ -83,7 +87,9 @@ export default function AddProductPage() {
       locationRequired: "يرجى تحديد موقعك الجغرافي عبر الـ GPS",
       publish: "نشر الإعلان",
       successMsg: "تم نشر الإعلان بنجاح!",
-      errorMsg: "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+      errorMsg: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      negotiable: "قابل للتفاوض",
+      mainImageNote: "الصورة الأولى ستكون الصورة الرئيسية لعرض المنتج", // النص العربي الجديد
     }
   };
 
@@ -100,6 +106,7 @@ export default function AddProductPage() {
   }, []);
 
   // دالة التقاط الموقع الجغرافي للبائع
+  // دالة التقاط الموقع الجغرافي للبائع مع جلب اسم المكان الحقيقي
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser");
@@ -108,11 +115,27 @@ export default function AddProductPage() {
 
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        let addressName = lang === "ar" ? "الموقع الحالي" : "Current Location";
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=${lang}`
+          );
+          const data = await response.json();
+          addressName = data.address?.city || data.address?.town || data.address?.village || data.address?.state || addressName;
+        } catch (error) {
+          console.error("Error fetching address name:", error);
+        }
+
         setFormData(prev => ({
           ...prev,
-          latitude: position.coords.latitude.toString(),
-          longitude: position.coords.longitude.toString()
+          latitude: lat.toString(),
+          longitude: lng.toString(),
+          locationAddress: addressName
         }));
         setLocating(false);
         toast.success(currentText.locationCaptured);
@@ -128,7 +151,7 @@ export default function AddProductPage() {
   const handleMixedFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      
+
       const newImages = filesArray.filter(file => file.type.startsWith("image/"));
       const newVideo = filesArray.find(file => file.type.startsWith("video/"));
 
@@ -151,7 +174,11 @@ export default function AddProductPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const target = e.target as HTMLInputElement;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -200,13 +227,15 @@ export default function AddProductPage() {
           title: formData.title,
           description: formData.description,
           price: Number(formData.price),
+          isNegotiable: formData.isNegotiable,
           category: formData.category,
           condition: formData.condition,
           images: imageUrls,
           video: videoUrl,
           location: {
             latitude: Number(formData.latitude),
-            longitude: Number(formData.longitude)
+            longitude: Number(formData.longitude),
+            address: formData.locationAddress
           }
         }),
       });
@@ -268,23 +297,39 @@ export default function AddProductPage() {
 
             {(imageFiles.length < 7 || !videoFile) && (
               <label className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl p-8 flex flex-col items-center justify-center text-zinc-400 hover:border-[#D6C88A] transition-colors cursor-pointer bg-white dark:bg-zinc-900">
-                
+
                 <span className="text-xs font-bold text-center">
                   {currentText.uploadText}
                 </span>
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">
+                   {currentText.mainImageNote}
+                </p>
                 <input type="file" multiple accept="image/*,video/*" onChange={handleMixedFilesChange} className="hidden" />
               </label>
             )}
           </div>
 
           <div className="grid gap-4">
-            <input name="title"  onChange={handleChange} value={formData.title} placeholder={currentText.titlePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
-            <textarea name="description"  onChange={handleChange} value={formData.description} placeholder={currentText.descPlaceholder} className="w-full h-32 p-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+            <input name="title" onChange={handleChange} value={formData.title} placeholder={currentText.titlePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+            <textarea name="description" onChange={handleChange} value={formData.description} placeholder={currentText.descPlaceholder} className="w-full h-32 p-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input name="price" type="number"  onChange={handleChange} value={formData.price} placeholder={currentText.pricePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 px-4 h-12 rounded-xl border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                <input
+                  type="checkbox"
+                  name="isNegotiable"
+                  id="isNegotiable"
+                  checked={formData.isNegotiable}
+                  onChange={handleChange}
+                  className="w-4 h-4 accent-[#1F1547] rounded cursor-pointer"
+                />
+                <label htmlFor="isNegotiable" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 cursor-pointer select-none">
+                  {currentText.negotiable}
+                </label>
+              </div>
+              <input name="price" type="number" onChange={handleChange} value={formData.price} placeholder={currentText.pricePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
 
-              <select name="category"  onChange={handleChange} value={formData.category} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
+              <select name="category" onChange={handleChange} value={formData.category} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
                 <option value="">{currentText.selectCategory}</option>
                 {categories.map((cat) => {
                   const categoryName = lang === "ar" ? cat.name.ar : cat.name.en;
@@ -297,7 +342,7 @@ export default function AddProductPage() {
               </select>
             </div>
 
-            <select name="condition"  onChange={handleChange} value={formData.condition} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
+            <select name="condition" onChange={handleChange} value={formData.condition} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
               <option value="">{currentText.condition}</option>
               <option value="New">{currentText.new}</option>
               <option value="Like New">{currentText.likeNew}</option>
@@ -319,6 +364,7 @@ export default function AddProductPage() {
               {formData.latitude && formData.longitude ? (
                 <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-bold">
                   <CheckCircle2 size={16} />
+                  <span>{formData.locationAddress || currentText.locationCaptured}</span><br />
                   <span>{currentText.locationCaptured}</span>
                 </div>
               ) : (

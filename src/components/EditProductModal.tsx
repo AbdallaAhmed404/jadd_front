@@ -36,10 +36,12 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
     title: "",
     description: "",
     price: "",
+    isNegotiable: false,
     category: "",
     condition: "",
     latitude: "",
-    longitude: ""
+    longitude: "",
+    locationAddress: ""
   });
 
   const [lang, setLang] = useState<"en" | "ar">("en");
@@ -89,7 +91,8 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
       publish: "Update Listing",
       successMsg: "Listing updated successfully!",
       errorMsg: "Something went wrong. Please try again.",
-      loadingData: "Loading product data..."
+      loadingData: "Loading product data...",
+      negotiable: "Negotiable price"
     },
     ar: {
       modalTitle: "تعديل المنتج",
@@ -109,7 +112,8 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
       publish: "تحديث الإعلان",
       successMsg: "تم تحديث الإعلان بنجاح!",
       errorMsg: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
-      loadingData: "جاري تحميل بيانات المنتج..."
+      loadingData: "جاري تحميل بيانات المنتج...",
+      negotiable: "قابل للتفاوض"
     }
   };
 
@@ -140,10 +144,12 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
             title: product.title || "",
             description: product.description || "",
             price: product.price ? product.price.toString() : "",
+            isNegotiable: product.isNegotiable || false, // <-- جلب قيمة التفاوض الحالية
             category: product.category?._id || product.category || "",
             condition: product.condition || "",
             latitude: product.location?.latitude ? product.location.latitude.toString() : "",
-            longitude: product.location?.longitude ? product.location.longitude.toString() : ""
+            longitude: product.location?.longitude ? product.location.longitude.toString() : "",
+            locationAddress: product.location?.address || "" // <-- جلب العنوان النصي الحالي
           });
           setExistingImages(product.images || []);
           setExistingVideo(product.video || "");
@@ -167,11 +173,27 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
 
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        let addressName = lang === "ar" ? "الموقع الحالي" : "Current Location";
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=${lang}`
+          );
+          const data = await response.json();
+          addressName = data.address?.city || data.address?.town || data.address?.village || data.address?.state || addressName;
+        } catch (error) {
+          console.error("Error fetching address name:", error);
+        }
+
         setFormData(prev => ({
           ...prev,
-          latitude: position.coords.latitude.toString(),
-          longitude: position.coords.longitude.toString()
+          latitude: lat.toString(),
+          longitude: lng.toString(),
+          locationAddress: addressName
         }));
         setLocating(false);
         toast.success(currentText.locationCaptured);
@@ -223,7 +245,11 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const target = e.target as HTMLInputElement;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -274,13 +300,15 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
           title: formData.title,
           description: formData.description,
           price: Number(formData.price),
+          isNegotiable: formData.isNegotiable, // <-- إرسال حالة التفاوض
           category: formData.category,
           condition: formData.condition,
           images: finalImages,
           video: finalVideoUrl,
           location: {
             latitude: Number(formData.latitude),
-            longitude: Number(formData.longitude)
+            longitude: Number(formData.longitude),
+            address: formData.locationAddress // <-- إرسال اسم المكان
           }
         }),
       });
@@ -397,21 +425,36 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
               <input name="title" onChange={handleChange} value={formData.title} placeholder={currentText.titlePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
               <textarea name="description" onChange={handleChange} value={formData.description} placeholder={currentText.descPlaceholder} className="w-full h-32 p-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input name="price" type="number" onChange={handleChange} value={formData.price} placeholder={currentText.pricePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
-
-                <select name="category" onChange={handleChange} value={formData.category} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
-                  <option value="">{currentText.selectCategory}</option>
-                  {categories.map((cat) => {
-                    const categoryName = lang === "ar" ? cat.name.ar : cat.name.en;
-                    return (
-                      <option key={cat._id} value={cat._id}>
-                        {categoryName}
-                      </option>
-                    );
-                  })}
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* زر التشيك بوكس للتفاوض */}
+              <div className="flex items-center gap-3 px-4 h-12 rounded-xl border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                <input
+                  type="checkbox"
+                  name="isNegotiable"
+                  id="isNegotiableEdit"
+                  checked={formData.isNegotiable}
+                  onChange={handleChange}
+                  className="w-4 h-4 accent-[#1F1547] rounded cursor-pointer"
+                />
+                <label htmlFor="isNegotiableEdit" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 cursor-pointer select-none">
+                  {currentText.negotiable}
+                </label>
               </div>
+
+              <input name="price" type="number" onChange={handleChange} value={formData.price} placeholder={currentText.pricePlaceholder} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold focus:border-[#D6C88A] outline-none" />
+
+              <select name="category" onChange={handleChange} value={formData.category} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
+                <option value="">{currentText.selectCategory}</option>
+                {categories.map((cat) => {
+                  const categoryName = lang === "ar" ? cat.name.ar : cat.name.en;
+                  return (
+                    <option key={cat._id} value={cat._id}>
+                      {categoryName}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
 
               <select name="condition" onChange={handleChange} value={formData.condition} className="w-full h-12 px-4 rounded-xl border bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-500 focus:border-[#D6C88A] outline-none">
                 <option value="">{currentText.condition}</option>
@@ -435,7 +478,8 @@ export default function EditProductModal({ productId, isOpen, onClose, onSuccess
                 {formData.latitude && formData.longitude ? (
                   <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-bold">
                     <CheckCircle2 size={16} />
-                    <span>{currentText.locationCaptured}</span>
+                    <span>{formData.locationAddress}</span><br />
+                    <span>{ currentText.locationCaptured}</span>
                   </div>
                 ) : (
                   <span className="text-xs text-zinc-400">

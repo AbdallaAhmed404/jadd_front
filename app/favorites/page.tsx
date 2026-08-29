@@ -44,8 +44,8 @@ export default function FavoritesPage() {
     ar: {
       pageTitle: "المفضلة",
       noFavorites: "لا توجد عناصر في المفضلة.",
-      recommendedTitle: "مقترحة لأجلك",
-      currency: "رع"
+      recommendedTitle: "قد يعجبك ايضا",
+      currency: "ر.ع"
     }
   };
 

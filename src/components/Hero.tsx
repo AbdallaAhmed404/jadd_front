@@ -46,7 +46,7 @@ const customSlides = {
       tag: "سيولة فورية",
       tagIcon: <PlusCircle size={12} className="text-[#C5B37D]" />,
       title: "حول أصولك غير المستخدمة إلى نقد فوراً",
-      desc: "امنح أغراضك حياة جديدة. يقدم موقع جَددّ مساحة مخصصة وخالية من الإعلانات تتيح لك عرض ممتلكاتك وبيعها في دقائق.",
+      desc: "امنح أغراضك حياة جديدة. يقدم موقع جَدّد مساحة مخصصة وخالية من الإعلانات تتيح لك عرض ممتلكاتك وبيعها في دقائق.",
       ctaText: "أضف منتجك الآن",
       ctaLink: "/add-product",
       bgImage: "url('https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1600&auto=format&fit=crop')" 

@@ -24,6 +24,7 @@ export default function CategoryPage() {
   const [condition, setCondition] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest"); // newest, price, distance
+  const [priceOrder, setPriceOrder] = useState<"asc" | "desc">("asc");
 
   const searchParams = useSearchParams();
 
@@ -181,10 +182,11 @@ export default function CategoryPage() {
       }
     }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/categories`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/categories`)
       .then((res) => res.json())
       .then((data) => {
         // استخراج المصفوفة بأمان سواء كانت مباشرة أو داخل data.data
+        console.log("Categories API Response:", data);
         const categoriesList = Array.isArray(data) 
           ? data 
           : (Array.isArray(data?.data) ? data.data : []);
@@ -259,7 +261,7 @@ export default function CategoryPage() {
         // فلتر الحالة
         const matchesCondition = condition === "all" || p.condition?.toLowerCase() === condition.toLowerCase();
 
-        // فلتر المسافة بالكيلومتر (إذا كانت المسافة متوفرة للمنتج، يتم مقارنتها بالـ slider)
+        // فلتر المسافة بالكيلومتر
         let matchesDistance = true;
         if (p.distance !== null && p.distance !== undefined) {
           matchesDistance = p.distance <= maxDistance;
@@ -282,8 +284,11 @@ export default function CategoryPage() {
         if (a.isFeatured && !b.isFeatured) return -1;
         if (!a.isFeatured && b.isFeatured) return 1;
 
-        // بعد كده يشتغل الترتيب العادي حسب اختيار المستخدم (سعر، مسافة، أو أحدث)
-        if (sortBy === "price") return a.price - b.price;
+        // الترتيب الذكي للسعر حسب الاتجاه الحالي (صاعد أو هابط)
+        if (sortBy === "price") {
+          return priceOrder === "asc" ? a.price - b.price : b.price - a.price;
+        }
+        
         if (sortBy === "distance") {
           const distA = a.distance !== null && a.distance !== undefined ? a.distance : 999999;
           const distB = b.distance !== null && b.distance !== undefined ? b.distance : 999999;
@@ -291,7 +296,7 @@ export default function CategoryPage() {
         }
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
-  }, [products, priceRange, maxDistance, condition, dateFilter, sortBy]);
+  }, [products, priceRange, maxDistance, condition, dateFilter, sortBy, priceOrder]); // <-- أضفنا priceOrder هنا
 
   const decodedParamCheck = decodeURIComponent(categoryParam || "").replace(/-/g, " ").toLowerCase();
 
@@ -410,16 +415,34 @@ export default function CategoryPage() {
                   </div>
 
                   {/* الترتيب (شاشات كبيرة) */}
+                 {/* الترتيب (شاشات كبيرة) */}
                   <div className="space-y-3 hidden md:block">
                     <label className="text-xs font-bold uppercase text-zinc-400">{currentText.sortBy}</label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
                         { id: "newest", label: currentText.newest },
-                        { id: "distance", label: currentText.distance },
-                        { id: "price", label: currentText.price }
+                        { id: "distance", label: currentText.distance }
                       ].map(opt => (
                         <button key={opt.id} onClick={() => setSortBy(opt.id)} className={`h-9 rounded-lg text-[11px] font-bold border px-1 ${sortBy === opt.id ? "bg-[#232152] dark:bg-[#D6C88A] text-white dark:text-black" : ""}`}>{opt.label}</button>
                       ))}
+
+                      {/* زر السعر الذكي المتغير */}
+                      <button 
+                        onClick={() => {
+                          if (sortBy === "price") {
+                            setPriceOrder(prev => prev === "asc" ? "desc" : "asc");
+                          } else {
+                            setSortBy("price");
+                            setPriceOrder("asc");
+                          }
+                        }} 
+                        className={`h-9 rounded-lg text-[11px] font-bold border px-2 flex items-center justify-center gap-1 ${sortBy === "price" ? "bg-[#232152] dark:bg-[#D6C88A] text-white dark:text-black" : ""}`}
+                      >
+                        <span>{currentText.price}</span>
+                        {sortBy === "price" && (
+                          <span className="text-xs font-extrabold">{priceOrder === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -441,11 +464,10 @@ export default function CategoryPage() {
                   <h2 className="font-bold text-base">{currentText.sortBy}</h2>
                   <button onClick={() => setIsSortOpen(false)} className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"><X size={20} /></button>
                 </div>
-                <div className="space-y-2 pb-4">
+               <div className="space-y-2 pb-4">
                   {[
                     { id: "newest", label: currentText.newest },
-                    { id: "distance", label: currentText.distance },
-                    { id: "price", label: currentText.price }
+                    { id: "distance", label: currentText.distance }
                   ].map(opt => (
                     <button
                       key={opt.id}
@@ -456,6 +478,31 @@ export default function CategoryPage() {
                       {sortBy === opt.id && <Check size={16} />}
                     </button>
                   ))}
+
+                  {/* خيار السعر الذكي للموبايل */}
+                 {/* خيار السعر الذكي للموبايل */}
+                  <button
+                    onClick={() => {
+                      if (sortBy === "price") {
+                        setPriceOrder(prev => prev === "asc" ? "desc" : "asc");
+                      } else {
+                        setSortBy("price");
+                        setPriceOrder("asc");
+                      }
+                      // شلنا setIsSortOpen(false) من هنا عشان المستخدم يشوف السهم بيتغير قدامه ويفضل القائمة مفتوحة لو حابب يبدل تاني
+                    }}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl text-sm font-semibold transition-colors ${sortBy === "price" ? "bg-zinc-100 dark:bg-zinc-800 text-[#232152] dark:text-[#D6C88A]" : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {currentText.price}
+                      {sortBy === "price" && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700">
+                          {priceOrder === "asc" ? (lang === "ar" ? "من الأقل للأكبر ↑" : "Low to High ↑") : (lang === "ar" ? "من الأكبر للأقل ↓" : "High to Low ↓")}
+                        </span>
+                      )}
+                    </span>
+                    {sortBy === "price" && <Check size={16} />}
+                  </button>
                 </div>
               </motion.div>
             </>

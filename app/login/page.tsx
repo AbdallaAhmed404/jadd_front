@@ -63,9 +63,9 @@ export default function LoginPage() {
       otpError: "Error verifying OTP"
     },
     ar: {
-      welcomeBack: "أهلاً بك بعودتك",
+      welcomeBack: "أهلاً بعودتك",
       verifyAccount: "تحقق من الحساب",
-      loginSub: "تسجيل الدخول بريدك الإلكتروني وكلمة المرور للوصول إلى دائرة الأصول المميزة الخاصة بك.",
+      loginSub: "سجل الدخول باستخدام بريدك الإلكتروني و كلمة المرور للوصول الى حسابك",
       otpSub: (emailVal: string) => `لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني: ${emailVal || 'بريدك الإلكتروني'}`,
       emailLabel: "البريد الإلكتروني",
       passwordLabel: "كلمة المرور",
@@ -144,13 +144,13 @@ export default function LoginPage() {
 
 
       {/* الجزء الأيسر */}
-      <div className="w-full lg:w-1/2 h-full flex flex-col justify-between p-8 sm:p-16 relative z-10 bg-[#f8f9fa] dark:bg-zinc-950 transition-colors duration-300">
+      <div className="w-full lg:w-1/2 h-full flex flex-col justify-center p-8 sm:p-16 relative z-10 bg-[#f8f9fa] dark:bg-zinc-950 transition-colors duration-300">
         <div className="absolute inset-x-0 top-1/4 bg-[#D6C88A]/5 blur-[120px] rounded-full pointer-events-none max-w-md mx-auto h-72" />
 
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md mx-auto space-y-8 pt-15"
+          className="w-full max-w-md mx-auto space-y-6"
         >
           <div className="space-y-2">
             <h2 className="text-2xl font-extrabold tracking-tight">
@@ -216,6 +216,14 @@ export default function LoginPage() {
                   {currentText.signIn} <ArrowRight size={16} className={lang === "ar" ? "rotate-180" : ""} />
                 </button>
 
+                {/* رابط إنشاء حساب تم نقله ليصبح تحت زر تسجيل الدخول مباشرة */}
+                <div className="text-center pt-2">
+                  <p className="text-xs font-semibold text-zinc-400">
+                    {currentText.newToJadd}{" "}
+                    <Link href="/signup" className="text-[#D6C88A] font-bold hover:underline">{currentText.createAcc}</Link>
+                  </p>
+                </div>
+
               </motion.div>
             ) : (
               <motion.div
@@ -263,13 +271,6 @@ export default function LoginPage() {
             )}
           </AnimatePresence>
         </motion.div>
-
-        <div className="text-center lg:text-left">
-          <p className="text-xs font-semibold text-zinc-400">
-            {currentText.newToJadd}{" "}
-            <Link href="/signup" className="text-[#D6C88A] font-bold hover:underline">{currentText.createAcc}</Link>
-          </p>
-        </div>
       </div>
 
       {/* الجزء الأيمن */}
