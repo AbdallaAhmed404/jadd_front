@@ -21,24 +21,24 @@ export default function SignUpPage() {
   const [lang, setLang] = useState<"en" | "ar">("en");
 
   useEffect(() => {
-        const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
-        if (savedLang) {
-          setLang(savedLang);
-        }
-    
-        const handleLanguageChange = () => {
-          const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
-          if (currentLang && (currentLang === "en" || currentLang === "ar")) {
-            setLang(currentLang);
-          }
-        };
-    
-        window.addEventListener("languageChanged", handleLanguageChange);
-    
-        return () => {
-          window.removeEventListener("languageChanged", handleLanguageChange);
-        };
-      }, []);
+    const savedLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+    if (savedLang) {
+      setLang(savedLang);
+    }
+
+    const handleLanguageChange = () => {
+      const currentLang = localStorage.getItem("jadd-lang") as "en" | "ar";
+      if (currentLang && (currentLang === "en" || currentLang === "ar")) {
+        setLang(currentLang);
+      }
+    };
+
+    window.addEventListener("languageChanged", handleLanguageChange);
+
+    return () => {
+      window.removeEventListener("languageChanged", handleLanguageChange);
+    };
+  }, []);
 
   const t = {
     en: {
@@ -258,7 +258,8 @@ export default function SignUpPage() {
                   {currentText.checkEmail}
                 </p>
 
-                <div className="flex justify-center gap-3 dir-ltr">
+                {/* خانات إدخال الـ OTP - مثبتة دائماً من اليسار لليمين */}
+                <div className="flex justify-center gap-3" dir="ltr">
                   {otp.map((data, index) => (
                     <input
                       key={index}
