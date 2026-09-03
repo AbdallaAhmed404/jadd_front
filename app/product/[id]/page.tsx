@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Heart, MessageSquare, Tag, ChevronLeft, Star, ChevronRight, Loader2, Video, Share2 } from "lucide-react";
+import { Heart, MessageSquare, Tag, ChevronLeft, Star, ChevronRight, Loader2, Video, Share2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -91,7 +91,8 @@ export default function ProductDetailsPage() {
             reportFailed: "Failed to submit report",
             selectReason: "Please select a reason",
             shareAd: "Share",
-            linkCopied: "Link copied to clipboard!"
+            linkCopied: "Link copied to clipboard!",
+            location: "Location"
         },
         ar: {
             description: "الوصف",
@@ -131,7 +132,8 @@ export default function ProductDetailsPage() {
             reportFailed: "فشل إرسال البلاغ",
             selectReason: "الرجاء اختيار السبب",
             shareAd: "مشاركة",
-            linkCopied: "تم نسخ الرابط بنجاح!"
+            linkCopied: "تم نسخ الرابط بنجاح!",
+            location: "الموقع",
         }
     };
 
@@ -393,6 +395,18 @@ export default function ProductDetailsPage() {
                                 )}
                             </div>
                         </div>
+
+                        <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
+
+                        {/* قسم الموقع */}
+                        {product.location?.address && (
+                            <div>
+                                <h3 className="font-bold text-xs text-zinc-400 uppercase tracking-widest">{currentText.location}</h3>
+                                <div className="flex items-center gap-1.5 text-1xl font-bold h-7 rounded-lg text-[#1F1547] dark:text-white mt-1">
+                                    <span>{product.location.address}</span>
+                                </div>
+                            </div>
+                        )}
 
                         {showOfferModal && (
                             <motion.div

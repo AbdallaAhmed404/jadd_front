@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [showPassword, setShowPassword] = useState(false);
 
   // نظام اللغات المتزامن مع النافبار
   const [lang, setLang] = useState<"en" | "ar">("en");
@@ -55,7 +56,7 @@ export default function LoginPage() {
       newToJadd: "New to JADD?",
       createAcc: "Create an Account",
       welcomeToast: "Welcome back to JADD!",
-      unverifiedToast: "Account not verified. Redirecting to verification...",
+      unverifiedToast: "Account not verified. A new verification code has been sent to your email!",
       defaultError: "Invalid credentials",
       serverError: "Error connecting to server",
       verifiedSuccess: "Verified successfully! Redirecting...",
@@ -76,7 +77,7 @@ export default function LoginPage() {
       newToJadd: "جديد في جدد؟",
       createAcc: "إنشاء حساب",
       welcomeToast: "مرحباً بك مجدداً في جدد!",
-      unverifiedToast: "الحساب غير مفعل. يتم توجيهك إلى صفحة التحقق...",
+      unverifiedToast: "الحساب غير مفعل. تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني!",
       defaultError: "بيانات الاعتماد غير صالحة",
       serverError: "خطأ في الاتصال بالخادم",
       verifiedSuccess: "تم التحقق بنجاح! جاري التوجيه...",
@@ -130,7 +131,7 @@ export default function LoginPage() {
       });
       if (response.ok) {
         toast.success(currentText.verifiedSuccess);
-        setTimeout(() => router.push("/login"), 1500);
+        setTimeout(() => router.push("/"), 1500);
       } else {
         toast.error(currentText.invalidOtp);
       }
@@ -200,12 +201,19 @@ export default function LoginPage() {
                   <div className="relative flex items-center">
                     <Lock size={16} className={`absolute ${lang === "ar" ? "right-4" : "left-4"} text-zinc-400`} />
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className={`w-full h-12 ${lang === "ar" ? "pr-12 pl-4" : "pl-12 pr-4"} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-sm font-semibold focus:outline-hidden focus:border-[#D6C88A] transition-colors shadow-xs`}
+                      className={`w-full h-12 ${lang === "ar" ? "pr-12 pl-12" : "pl-12 pr-12"} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-sm font-semibold focus:outline-hidden focus:border-[#D6C88A] transition-colors shadow-xs`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute ${lang === "ar" ? "left-4" : "right-4"} text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors`}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
 
@@ -237,7 +245,7 @@ export default function LoginPage() {
                   {currentText.checkEmail}
                 </p>
 
-                <div className="flex justify-center gap-3 dir-ltr">
+                <div className="flex justify-center gap-3" dir="ltr">
                   {otp.map((data, index) => (
                     <input
                       key={index}
@@ -282,7 +290,7 @@ export default function LoginPage() {
           <Image src="/auth-dark.jpg" alt="JADD Luxury Night" fill priority className="object-cover object-center" />
         </div>
         <div className="absolute inset-0 bg-[#1F1547]/5 dark:bg-black/20 mix-blend-multiply" />
-      </div> 
+      </div>
     </div>
   );
 }

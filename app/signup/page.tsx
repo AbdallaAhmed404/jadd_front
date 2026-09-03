@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Phone, Lock, ShieldCheck, ArrowRight } from "lucide-react";
+import { User, Mail, Phone, Lock, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 // قم بتحديث هذا الرابط بعنوان السيرفر الخاص بك
@@ -16,6 +16,8 @@ export default function SignUpPage() {
   const [step, setStep] = useState<"form" | "otp">("form");
   const [emailInput, setEmailInput] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // نظام اللغات المتزامن مع النافبار
   const [lang, setLang] = useState<"en" | "ar">("en");
@@ -61,6 +63,8 @@ export default function SignUpPage() {
       serverError: "Error connecting to server",
       verifiedSuccess: "Verified successfully! Redirecting...",
       invalidOtp: "Invalid OTP",
+      confirmPasswordLabel: "Confirm Password",
+      passwordMismatch: "Passwords do not match",
       verifyError: "Error verifying OTP"
     },
     ar: {
@@ -83,6 +87,8 @@ export default function SignUpPage() {
       serverError: "خطأ في الاتصال بالخادم",
       verifiedSuccess: "تم التحقق بنجاح! جاري التوجيه...",
       invalidOtp: "رمز التحقق غير صحيح",
+      confirmPasswordLabel: "تأكيد كلمة المرور",
+      passwordMismatch: "كلمة المرور غير متطابقة",
       verifyError: "خطأ أثناء التحقق من الرمز"
     }
   };
@@ -93,7 +99,8 @@ export default function SignUpPage() {
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
-    password: ""
+    password: "",
+    confirmPassword: ""
   });
 
   const handleOtpChange = (element: HTMLInputElement, index: number) => {
@@ -106,6 +113,11 @@ export default function SignUpPage() {
 
   // دالة التسجيل
   const handleRegister = async () => {
+    if (formData.password !== formData.confirmPassword) {
+      toast.error(currentText.passwordMismatch);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/user/register`, {
         method: 'POST',
@@ -116,7 +128,8 @@ export default function SignUpPage() {
         setStep("otp");
         toast.success(currentText.regSuccess);
       } else {
-        toast.error(currentText.regFailed);
+        const data = await response.json();
+        toast.error(data.message || currentText.regFailed);
       }
     } catch (error) {
       toast.error(currentText.serverError);
@@ -229,11 +242,45 @@ export default function SignUpPage() {
                 </div>
 
                 {/* كلمة المرور */}
+                {/* كلمة المرور */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{currentText.passwordLabel}</label>
                   <div className="relative flex items-center">
-                    <Lock size={15} className={`absolute ${lang === "ar" ? "right-4" : "left-4"} text-zinc-400`} />
-                    <input type="password" onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="••••••••" className={`w-full h-11 ${lang === "ar" ? "pr-11 pl-4" : "pl-11 pr-4"} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-xs font-semibold focus:outline-hidden focus:border-[#D6C88A] transition-colors shadow-xs`} />
+                    <Lock size={15} className={`absolute ${lang === "ar" ? "right-4" : "left-4"} text-zinc-400 z-10`} />
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                      placeholder="••••••••" 
+                      className={`w-full h-11 ${lang === "ar" ? "pr-11 pl-11" : "pl-11 pr-11"} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-xs font-semibold focus:outline-hidden focus:border-[#D6C88A] transition-colors shadow-xs`} 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute ${lang === "ar" ? "left-4" : "right-4"} text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 z-10`}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* تأكيد كلمة المرور الجديد */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{currentText.confirmPasswordLabel}</label>
+                  <div className="relative flex items-center">
+                    <Lock size={15} className={`absolute ${lang === "ar" ? "right-4" : "left-4"} text-zinc-400 z-10`} />
+                    <input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
+                      placeholder="••••••••" 
+                      className={`w-full h-11 ${lang === "ar" ? "pr-11 pl-11" : "pl-11 pr-11"} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-xs font-semibold focus:outline-hidden focus:border-[#D6C88A] transition-colors shadow-xs`} 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className={`absolute ${lang === "ar" ? "left-4" : "right-4"} text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 z-10`}
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
 

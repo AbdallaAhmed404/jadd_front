@@ -149,14 +149,27 @@ export default function HeroMinimalSlider() {
             <div className="pt-2">
               <button
                 onClick={async () => {
+                  const targetLink = slides[current].ctaLink;
+
+                  // إذا كان الزر خاص باستكشاف السوق، انتقل مباشرة بدون فحص الهوية
+                  if (targetLink !== "/add-product") {
+                    router.push(targetLink);
+                    return;
+                  }
+
+                  // أما إذا كان زر إضافة منتج، فنطبق حماية وتسجيل الدخول والتحقق من الهوية
                   const token = localStorage.getItem("jadd-token");
-                  checkAuth()
+                  if (!token) {
+                    toast.error(lang === "ar" ? "يرجى تسجيل الدخول أولاً للمتابعة." : "Please login first to continue.");
+                    router.push("/login");
+                    return;
+                  }
 
                   try {
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile-status`, {
                       headers: { "Authorization": `Bearer ${token}` }
                     });
-                    const data = await response.json(); // سيصلنا { status: 'unverified' | 'pending' | 'verified' }
+                    const data = await response.json();
 
                     if (response.ok) {
                       if (data.status === 'unverified') {
@@ -165,7 +178,7 @@ export default function HeroMinimalSlider() {
                       } else if (data.status === 'pending') {
                         toast.error(lang === "ar" ? "هويتك قيد المراجعة. يرجى الانتظار." : "Your ID is under review. Please wait.");
                       } else if (data.status === 'verified') {
-                        router.push(slides[current].ctaLink);
+                        router.push(targetLink);
                       }
                     } else {
                       router.push("/login");
