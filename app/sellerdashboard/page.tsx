@@ -12,6 +12,7 @@ export default function SellerDashboard() {
   const { openChat } = useChat();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string>("");
+  const [sentOffers, setSentOffers] = useState<any[]>([]);
 
   // نظام اللغات المتزامن مع النافبار
   const [lang, setLang] = useState<"en" | "ar">("en");
@@ -59,7 +60,14 @@ export default function SellerDashboard() {
         Available: "Available",
         Reserved: "Reserved",
         Sold: "Sold"
-      }
+      },
+      sentOffersTitle: "My Sent Offers",
+      sellerCol: "Seller",
+      myOfferPriceCol: "My Offer Price",
+      offerStatusCol: "Offer Status",
+      statusPending: "Pending",
+      statusAccepted: "Accepted",
+      statusRejected: "Rejected"
     },
     ar: {
       loadingText: "جاري التحميل...",
@@ -83,7 +91,14 @@ export default function SellerDashboard() {
         Available: "متاح",
         Reserved: "محجوز",
         Sold: "مباع"
-      }
+      },
+      sentOffersTitle: "عروض الأسعار التي قدمتها",
+      sellerCol: "البائع",
+      myOfferPriceCol: "سعر العرض الذي قدمته",
+      offerStatusCol: "حالة العرض",
+      statusPending: "قيد الانتظار",
+      statusAccepted: "مقبول",
+      statusRejected: "مرفوض"
     }
   };
 
@@ -99,11 +114,19 @@ export default function SellerDashboard() {
       const result = await res.json();
       setData(result);
 
+      // جلب العروض الواردة (للبائع)
       const offersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/my-offers`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const offersResult = await offersRes.json();
       setOffers(offersResult);
+
+      // جلب العروض المُرسلة (للمشتري)
+      const sentOffersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/my-sent-offers`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const sentOffersResult = await sentOffersRes.json();
+      setSentOffers(sentOffersResult);
 
       setLoading(false);
     } catch (err) {
@@ -358,86 +381,158 @@ export default function SellerDashboard() {
   return (
     <div className="p-6 bg-white dark:bg-[#080808] min-h-screen transition-colors duration-300 " dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="max-w-6xl mx-auto">
-
-        <h2 className="text-lg font-bold mb-4 text-[#1F1547] dark:text-[#D6C88A]">{currentText.statisticsTitle}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {[
-            { title: currentText.viewsLabel, value: seller.views, icon: Eye, color: "text-blue-500" },
-            { title: currentText.favoritesLabel, value: totalFavorites, icon: Heart, color: "text-red-500" },
-            { title: currentText.revenueLabel, value: `${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-yellow-500" },
-          ].map((item, i) => (
-            <div key={i} className="bg-zinc-100 dark:bg-[#121212] p-6 rounded-2xl border-zinc-200 dark:border-white/10 flex items-center gap-4">
-              <div className={`p-4 rounded-xl bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547]`}><item.icon size={24} /></div>
-              <div>
-                <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">{item.title}</p>
-                <h3 className="text-2xl font-bold text-[#232152] dark:text-white">{item.value}</h3>
-              </div>
+        {seller.isVerified && (
+          <>
+            <h2 className="text-lg font-bold mb-4 text-[#1F1547] dark:text-[#D6C88A]">{currentText.statisticsTitle}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: currentText.viewsLabel, value: seller.views, icon: Eye, color: "text-blue-500" },
+                { title: currentText.favoritesLabel, value: totalFavorites, icon: Heart, color: "text-red-500" },
+                { title: currentText.revenueLabel, value: `${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-yellow-500" },
+              ].map((item, i) => (
+                <div key={i} className="bg-zinc-100 dark:bg-[#121212] p-6 rounded-2xl border-zinc-200 dark:border-white/10 flex items-center gap-4">
+                  <div className={`p-4 rounded-xl bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547]`}><item.icon size={24} /></div>
+                  <div>
+                    <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">{item.title}</p>
+                    <h3 className="text-2xl font-bold text-[#232152] dark:text-white">{item.value}</h3>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
 
-        <h2 className="text-lg font-bold mb-4 text-zinc-800 text-[#1F1547] dark:text-[#D6C88A]">{currentText.myAdsTitle}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {renderTable(currentText.activeAdsTitle, "text-green-500", activeProducts, true)}
-          {renderTable(currentText.soldProductsTitle, "text-blue-500", soldProducts)}
-        </div>
+        {seller.isVerified && (
+          <>
+            <h2 className="text-lg font-bold mb-4 text-zinc-800 text-[#1F1547] dark:text-[#D6C88A]">{currentText.myAdsTitle}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {renderTable(currentText.activeAdsTitle, "text-green-500", activeProducts, true)}
+              {renderTable(currentText.soldProductsTitle, "text-blue-500", soldProducts)}
+            </div>
+          </>
+        )}
 
-        <h2 className="text-lg font-bold mb-4 text-zinc-800 text-[#1F1547] dark:text-[#D6C88A]">{currentText.recentOffersTitle}</h2>
-        <div className="bg-zinc-100 dark:bg-[#121212] rounded-2xl border-zinc-200 dark:border-white/10 overflow-hidden">
+        {seller.isVerified && (
+          <>
+            <h2 className="text-lg font-bold mb-4 text-zinc-800 text-[#1F1547] dark:text-[#D6C88A]">{currentText.recentOffersTitle}</h2>
+            <div className="bg-zinc-100 dark:bg-[#121212] rounded-2xl border-zinc-200 dark:border-white/10 overflow-hidden mb-8">
+              <table className={`w-full ${lang === "ar" ? "text-right" : "text-left"} text-sm `}>
+                <thead>
+                  <tr className="text-zinc-400 text-[10px] border-b border-zinc-200 dark:border-white/10 uppercase">
+                    <th className="p-4">{currentText.productCol}</th>
+                    <th className="p-4">{currentText.buyerCol}</th>
+                    <th className="p-4">{currentText.offerPriceCol}</th>
+                    <th className="p-4">{currentText.actionsCol}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {offers.map((offer: any) => (
+                    <tr key={offer._id} className="border-b border-zinc-200 dark:border-white/10 last:border-0">
+                      <td className="p-4 font-bold">{offer.productId?.title}</td>
+                      <td className="p-4 font-bold">{offer.buyerId?.fullName || offer.buyerId?.name}</td>
+                      <td className="p-4 font-bold text-black dark:text-white"><span> {offer.offerPrice} </span>
+
+                        {lang === "ar" ? (
+                          <img
+                            src="/oman-riyal.svg"
+                            alt="ريال عماني"
+                            // استخدمنا الكلاسات لتغيير الفلتر أو اللون حسب الثيم مباشرة
+                            className="w-4 h-4 object-contain inline-block dark:invert"
+                          />
+                        ) : (
+                          <span>OMR</span>
+                        )}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => {
+                              const buyerId = offer.buyerId?._id || offer.buyerId;
+                              const productId = offer.productId?._id || offer.productId;
+                              handleOfferStatus(offer._id, 'accepted', buyerId, productId);
+                            }}
+                            className={`p-2 rounded-full transition-all ${offer.status === 'accepted'
+                              ? 'bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547]'
+                              : 'text-zinc-400 hover:text-green-500 hover:bg-green-500/10'
+                              }`}
+                          >
+                            <Check size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleOfferStatus(offer._id, 'rejected')}
+                            className={`p-2 rounded-full transition-all ${offer.status === 'rejected'
+                              ? 'bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547]'
+                              : 'text-zinc-400 hover:text-red-500 hover:bg-red-500/10'
+                              }`}
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+        <h2 className="text-lg font-bold mb-4 text-zinc-800 text-[#1F1547] dark:text-[#D6C88A]">{currentText.sentOffersTitle}</h2>
+        <div className="bg-zinc-100 dark:bg-[#121212] rounded-2xl border-zinc-200 dark:border-white/10 overflow-hidden mb-8">
           <table className={`w-full ${lang === "ar" ? "text-right" : "text-left"} text-sm`}>
             <thead>
               <tr className="text-zinc-400 text-[10px] border-b border-zinc-200 dark:border-white/10 uppercase">
                 <th className="p-4">{currentText.productCol}</th>
-                <th className="p-4">{currentText.buyerCol}</th>
-                <th className="p-4">{currentText.offerPriceCol}</th>
-                <th className="p-4">{currentText.actionsCol}</th>
+                <th className="p-4">{currentText.sellerCol}</th>
+                <th className="p-4">{currentText.myOfferPriceCol}</th>
+                <th className="p-4">{currentText.offerStatusCol}</th>
               </tr>
             </thead>
             <tbody>
-              {offers.map((offer: any) => (
-                <tr key={offer._id} className="border-b border-zinc-200 dark:border-white/10 last:border-0">
-                  <td className="p-4 font-bold">{offer.productId?.title}</td>
-                  <td className="p-4 font-bold">{offer.buyerId?.fullName || offer.buyerId?.name}</td>
-                  <td className="p-4 font-bold text-black dark:text-white"><span> {offer.offerPrice} </span>
+              {sentOffers && sentOffers.length > 0 ? (
+                sentOffers.map((offer: any) => {
+                  const sellerName = offer.sellerId?.fullName || offer.sellerId?.name || "Seller";
+                  const productTitle = offer.productId?.title || "Product";
 
-                    {lang === "ar" ? (
-                      <img
-                        src="/oman-riyal.svg"
-                        alt="ريال عماني"
-                        // استخدمنا الكلاسات لتغيير الفلتر أو اللون حسب الثيم مباشرة
-                        className="w-4 h-4 object-contain inline-block dark:invert"
-                      />
-                    ) : (
-                      <span>OMR</span>
-                    )}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => {
-                          const buyerId = offer.buyerId?._id || offer.buyerId;
-                          const productId = offer.productId?._id || offer.productId;
-                          handleOfferStatus(offer._id, 'accepted', buyerId, productId);
-                        }}
-                        className={`p-2 rounded-full transition-all ${offer.status === 'accepted'
-                          ? 'bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547]'
-                          : 'text-zinc-400 hover:text-green-500 hover:bg-green-500/10'
-                          }`}
-                      >
-                        <Check size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleOfferStatus(offer._id, 'rejected')}
-                        className={`p-2 rounded-full transition-all ${offer.status === 'rejected'
-                          ? 'bg-[#1F1547] dark:bg-[#D6C88A] text-white dark:text-[#1F1547]'
-                          : 'text-zinc-400 hover:text-red-500 hover:bg-red-500/10'
-                          }`}
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
+                  let statusBadgeStyle = "bg-yellow-500/10 text-yellow-600";
+                  let statusText = currentText.statusPending;
+                  if (offer.status === 'accepted') {
+                    statusBadgeStyle = "bg-green-500/10 text-green-500";
+                    statusText = currentText.statusAccepted;
+                  } else if (offer.status === 'rejected') {
+                    statusBadgeStyle = "bg-red-500/10 text-red-500";
+                    statusText = currentText.statusRejected;
+                  }
+
+                  return (
+                    <tr key={offer._id} className="border-b border-zinc-200 dark:border-white/10 last:border-0">
+                      <td className="p-4 font-bold">{productTitle}</td>
+                      <td className="p-4 font-bold text-zinc-600 dark:text-zinc-300">{sellerName}</td>
+                      <td className="p-4 font-bold text-black dark:text-white flex items-center gap-1">
+                        <span>{offer.offerPrice}</span>
+                        {lang === "ar" ? (
+                          <img
+                            src="/oman-riyal.svg"
+                            alt="ريال عماني"
+                            className="w-4 h-4 object-contain inline-block dark:invert"
+                          />
+                        ) : (
+                          <span>OMR</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusBadgeStyle}`}>
+                          {statusText}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-zinc-400 text-xs">
+                    {lang === "ar" ? "لا توجد عروض مرسلة حتى الآن" : "No sent offers yet"}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

@@ -50,8 +50,8 @@ export default function IDVerificationPage() {
       successTitle: "تم إرسال الطلب!",
       successDesc: "سيقوم فريقنا بمراجعة هويتك قريباً.",
       pageTitle: "تحقق من هويتك",
-      pageDesc: "لضمان بيئة آمنة، يرجى رفع صورة واضحة لبطاقة هويتك وإدخال الرقم القومي. سيتم التحقق من طلبك يدويًا.",
-      nationalIdPlaceholder: "أدخل الرقم القومي (مثلاً 14 رقم)",
+      pageDesc: "لضمان بيئة آمنة، يرجى رفع صورة واضحة لبطاقة هويتك وإدخال الرقم المدني. سيتم التحقق من طلبك يدويًا.",
+      nationalIdPlaceholder: "أدخل الرقم المدني (مثلاً 14 رقم)",
       uploadPrompt: "رفع صورة الهوية",
       submitBtn: "إرسال للمراجعة",
       alertMsg: "حدث خطأ ما، يرجى المحاولة مرة أخرى."
@@ -124,10 +124,6 @@ export default function IDVerificationPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-zinc-950 p-6 md:p-12 flex items-center justify-center" dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="max-w-md w-full text-center space-y-6">
-        <div className="mx-auto w-16 h-16 bg-[#D6C88A]/10 rounded-full flex items-center justify-center text-[#D6C88A]">
-          <ShieldCheck size={32} />
-        </div>
-
         <h1 className="text-xl font-black text-[#1F1547] dark:text-white">{currentText.pageTitle}</h1>
         <p className="text-xs font-semibold text-zinc-400">
           {currentText.pageDesc}

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Heart, MessageSquare, Plus, User } from "lucide-react";
+import { Home, Heart, MessageSquare, Plus, User, Settings } from "lucide-react";
 import toast from "react-hot-toast";
 import { useChat } from "@/src/components/ChatDrawerProvider";
 
@@ -16,6 +16,10 @@ export default function MobileBottomNav() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [userImage, setUserImage] = useState<string | null>(null);
     const [hasUnreadChats, setHasUnreadChats] = useState(false);
+    
+    // حالة ظهور القائمة المنسدلة للبروفايل في الموبايل
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     const checkUnreadChats = async () => {
         const token = localStorage.getItem("jadd-token");
@@ -96,12 +100,28 @@ export default function MobileBottomNav() {
         };
     }, []);
 
+    // إغلاق القائمة المنسدلة عند الضغط خارجها
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+        if (isProfileMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isProfileMenuOpen]);
+
     const t = {
         en: {
             home: "Home",
             favourites: "Favourites",
             chats: "Chats",
             profile: "Profile",
+            controlCenter: "Control Center",
             verifyError: "Please verify your ID to add products.",
             reviewError: "Your ID is under review. Please wait.",
             serverError: "Error connecting to server",
@@ -112,6 +132,7 @@ export default function MobileBottomNav() {
             favourites: "المفضلة",
             chats: "المحادثات",
             profile: "الملف الشخصي",
+            controlCenter: "لوحة التحكم",
             verifyError: "يرجى التحقق من هويتك لإضافة المنتجات.",
             reviewError: "هويتك قيد المراجعة. يرجى الانتظار.",
             serverError: "خطأ في الاتصال بالخادم",
@@ -139,27 +160,27 @@ export default function MobileBottomNav() {
 
             {/* زر الرئيسية */}
             <button
-                onClick={() => router.push("/")}
+                onClick={() => { setIsProfileMenuOpen(false); router.push("/"); }}
                 className={`flex flex-col items-center gap-1 transition-colors ${pathname === "/" ? "text-jadd-gold" : "text-[#232152]/70 dark:text-foreground/70 hover:text-jadd-gold"}`}
             >
-                <Home size={20} />
-                <span className="text-[10px] font-bold">{currentText.home}</span>
+                <Home size={28} />
             </button>
 
             {/* زر المفضلة */}
             <button
                 onClick={() => {
+                    setIsProfileMenuOpen(false);
                     if (checkAuth()) router.push("/favorites");
                 }}
                 className={`flex flex-col items-center gap-1 transition-colors ${pathname === "/favorites" ? "text-jadd-gold" : "text-[#232152]/70 dark:text-foreground/70 hover:text-jadd-gold"}`}
             >
-                <Heart size={20} />
-                <span className="text-[10px] font-bold">{currentText.favourites}</span>
+                <Heart size={28} />
             </button>
 
             {/* زر إضافة إعلان (في المنتصف) */}
             <button
                 onClick={async () => {
+                    setIsProfileMenuOpen(false);
                     const token = localStorage.getItem("jadd-token");
                     if (!checkAuth()) return;
 
@@ -191,9 +212,9 @@ export default function MobileBottomNav() {
             </button>
 
             {/* زر الشات */}
-            {/* زر الشات */}
             <button
                 onClick={() => {
+                    setIsProfileMenuOpen(false);
                     if (checkAuth()) {
                         toggleChat();
                         setHasUnreadChats(false); // إخفاء النقطة الحمراء فور فتح الشات
@@ -202,34 +223,62 @@ export default function MobileBottomNav() {
                 className="flex flex-col items-center gap-1 text-[#232152]/70 dark:text-foreground/70 hover:text-jadd-gold transition-colors relative"
             >
                 <div className="relative">
-                    <MessageSquare size={20} />
+                    <MessageSquare size={28} />
                     {hasUnreadChats && (
                         <span className="absolute -top-1 -right-1 bg-red-500 rounded-full h-2.5 w-2.5 ring-2 ring-white dark:ring-zinc-950 animate-pulse" />
                     )}
                 </div>
-                <span className="text-[10px] font-bold">{currentText.chats}</span>
             </button>
 
-            {/* زر الملف الشخصي */}
-            <button
-                onClick={() => {
-                    if (checkAuth()) router.push("/profile");
-                }}
-                className={`flex flex-col items-center gap-1 transition-colors ${pathname === "/profile" ? "text-jadd-gold" : "text-[#232152]/70 dark:text-foreground/70 hover:text-jadd-gold"}`}
-            >
-                {userImage ? (
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-border/40">
-                        <img
-                            src={userImage}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                        />
+            {/* زر الملف الشخصي والقائمة المنسدلة */}
+            <div className="relative" ref={menuRef}>
+                {isProfileMenuOpen && (
+                    <div className={`absolute bottom-14 ${lang === "ar" ? "left-0" : "right-0"} w-44 bg-white dark:bg-zinc-900 border border-border/60 rounded-xl shadow-2xl p-1.5 z-[10000] flex flex-col gap-1`}>
+                        <button
+                            onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                router.push("/profile");
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#232152] dark:text-foreground hover:bg-jadd-ivory/60 dark:hover:bg-zinc-800 rounded-lg transition-colors w-full text-start"
+                        >
+                            <User size={15} className="text-jadd-gold" />
+                            <span>{currentText.profile}</span>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                router.push("/sellerdashboard");
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#232152] dark:text-foreground hover:bg-jadd-ivory/60 dark:hover:bg-zinc-800 rounded-lg transition-colors w-full text-start border-t border-border/40 pt-2"
+                        >
+                            <Settings size={15} className="text-jadd-gold" />
+                            <span>{currentText.controlCenter}</span>
+                        </button>
                     </div>
-                ) : (
-                    <User size={20} />
                 )}
-                <span className="text-[10px] font-bold">{currentText.profile}</span>
-            </button>
+
+                <button
+                    onClick={() => {
+                        if (checkAuth()) {
+                            setIsProfileMenuOpen(!isProfileMenuOpen);
+                        }
+                    }}
+                    className={`flex flex-col items-center gap-1 transition-colors ${pathname === "/profile" || pathname === "/sellerdashboard" ? "text-jadd-gold" : "text-[#232152]/70 dark:text-foreground/70 hover:text-jadd-gold"}`}
+                >
+                    {userImage ? (
+                        <div className="w-10 h-10 rounded-full overflow-hidden border border-border/40">
+                            <img
+                                src={userImage}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    ) : (
+                        <User size={28} />
+                    )}
+                </button>
+            </div>
 
         </div>
     );

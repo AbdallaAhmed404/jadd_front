@@ -788,11 +788,11 @@ export default function Navbar() {
                       )}
 
                       {/* خيار مركز التحكم (للبائعين الموثقين) */}
-                      {isLoggedIn && userStatus === 'verified' && (
+                      {isLoggedIn && (
                         <Link
                           href="/sellerdashboard"
                           onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-bold hover:bg-jadd-ivory/50 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                          className="hidden md:flex items-center gap-2 px-3 py-2 text-xs font-bold hover:bg-jadd-ivory/50 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                         >
                           <Settings size={14} /> {currentText.controlCenter}
                         </Link>
